@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deck</title>
+<!-- Swap for self-hosted woff2 before this leaves your machine — see house-style.md -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#eff1f5;
+  --ink:#211a52;
+  --ink-2:#5b6070;
+  --ink-3:#6e6e77;
+  --line:#e2e5ec;
+  --accent:#4a2fe0;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --sans:"Geist","Segoe UI",system-ui,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(.2,.75,.25,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:#12121a;color:var(--ink);font-family:var(--sans);overflow:hidden}
+/* not tidiness: a UA 1em margin offsets absolutely-positioned elements from
+   where top/bottom says, which makes every number in the CSS a lie */
+p,h1,h2,h3,ul,ol,figure{margin:0}
+a{color:inherit}
+img{display:block;max-width:100%}
+
+/* ---- the stage: one logical canvas, scaled once ---- */
+#viewport{position:fixed;inset:0}
+#stage{width:1920px;height:1080px;position:absolute;left:50%;top:50%;
+       background:var(--paper);overflow:hidden;transform-origin:center}
+
+.slide{position:absolute;inset:0;opacity:0;visibility:hidden;
+       transition:opacity .45s var(--ease),visibility .45s}
+.slide.is-active{opacity:1;visibility:visible}
+
+/* ---- title ---- */
+#s1{padding:0 120px;display:flex;flex-direction:column;justify-content:center}
+.kicker{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-weight:700;
+        font-size:21px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-3)}
+.kicker::before{content:"";width:15px;height:15px;border-radius:50%;background:var(--accent)}
+#s1 h1{margin-top:26px;font-family:var(--display);font-weight:800;font-size:112px;
+       line-height:1;text-transform:uppercase;max-width:16ch}
+#s1 .lede{margin-top:26px;max-width:60ch;font-size:21px;line-height:1.55;color:var(--ink-2)}
+
+/* ---- the stepped scene ---- */
+#scene{position:absolute;inset:0}
+/* a dotted spine rather than a ruled line — the markers are the structure */
+.axis{position:absolute;left:150px;right:150px;top:540px;display:flex;
+      justify-content:space-between;align-items:center;transform:translateY(-50%)}
+.axis s{width:10px;height:10px;border-radius:50%;background:#ccd0dc;
+        text-decoration:none;flex:none}
+
+.knot{position:absolute;top:540px;width:44px;height:44px;border-radius:50%;background:var(--c);
+      transform:translate(-50%,-50%) scale(.4);opacity:0;
+      transition:transform .45s var(--ease),opacity .3s;z-index:3}
+.knot.on{transform:translate(-50%,-50%) scale(1);opacity:1}
+/* the base transform is repeated in every frame — a keyframe that only scales
+   would replace it and knock the marker off its x. See motion.md. */
+.knot.on::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--c);
+                animation:halo 4.2s var(--ease) infinite;animation-delay:var(--hd,0s)}
+@keyframes halo{0%{transform:scale(1);opacity:.18}70%,100%{transform:scale(1.8);opacity:0}}
+
+.label{position:absolute;top:596px;transform:translateX(-50%);font-family:var(--mono);
+       font-weight:500;font-size:19px;letter-spacing:.2em;text-transform:uppercase;
+       color:#a7abba;white-space:nowrap;opacity:0;transition:opacity .4s,color .4s}
+.label.on{opacity:1;color:var(--c)}
+
+.card{position:absolute;width:280px;padding:22px 26px;border-radius:12px;text-align:center;
+      background:color-mix(in srgb,var(--c) 12%,var(--paper));
+      opacity:0;transform:translate(calc(-50% + var(--sx,0px)),var(--sy,0px)) scale(.5);
+      transition:opacity .45s var(--ease),transform .62s var(--ease);z-index:2}
+.card.on{opacity:1;transform:translate(-50%,0) scale(1)}
+.card h3{font-family:var(--display);font-weight:800;font-size:40px;line-height:1;
+         text-transform:uppercase;color:var(--c)}
+.card p{margin-top:10px;font-family:var(--mono);font-weight:500;font-size:15px;
+        line-height:1.5;color:var(--ink-2)}
+
+#progress{position:fixed;left:0;bottom:0;height:2px;background:var(--accent);width:0;
+          transition:width .4s var(--ease);z-index:50}
+#chrome{position:fixed;left:0;right:0;bottom:16px;display:flex;justify-content:center;gap:9px;
+        opacity:0;transition:opacity .25s;z-index:50}
+#viewport:hover #chrome{opacity:1}
+#chrome button{font-family:var(--mono);font-size:12px;color:#c8cad6;cursor:pointer;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+  border-radius:6px;padding:7px 13px}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition-duration:.001s!important}
+  /* the halo becomes a standing ring — an indicator that disappears is a bug */
+  .knot.on::after{opacity:.2;transform:scale(1.4)}
+}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+
+  <section class="slide is-active" id="s1">
+    <p class="kicker">Work in progress</p>
+    <h1>A deck you click through</h1>
+    <p class="lede">Replace this, then press → to walk the scene. The step machine and the
+      canvas already work; build on top of them.</p>
+  </section>
+
+  <section class="slide" id="s2"><div id="scene"></div></section>
+
+</div></div>
+
+<div id="chrome">
+  <button id="bPrev" type="button">← back</button>
+  <button id="bNext" type="button">next →</button>
+  <button id="bReset" type="button">reset (R)</button>
+  <button id="bAll" type="button">show all (F)</button>
+</div>
+<div id="progress"></div>
+
+<script>
+/* ── content: everything on screen comes from here ───────────────────────── */
+const ITEMS = [
+  { id:"one",   label:"January",  name:"First",  desc:"What this one is",  color:"#1e1b4b" },
+  { id:"two",   label:"March",    name:"Second", desc:"What this one is",  color:"#c0620e" },
+  { id:"three", label:"June",     name:"Third",  desc:"What this one is",  color:"#0e7c93" },
+  { id:"four",  label:"October",  name:"Fourth", desc:"What this one is",  color:"#0e8a5f" }
+];
+
+/* ── geometry: named constants, so the reasoning survives ────────────────── */
+const X0 = 340, COL = 380, DOTY = 540, CARD_TOP = 300;
+const xOf = i => X0 + i * COL;
+
+/* ── build once ──────────────────────────────────────────────────────────── */
+const stage = document.getElementById('stage');
+const scene = document.getElementById('scene');
+const slides = [...document.querySelectorAll('.slide')];
+
+const PIPS = 34;
+scene.innerHTML = '<div class="axis">' +
+  Array.from({ length:PIPS }, () => '<s></s>').join('') + '</div>';
+
+ITEMS.forEach((p, i) => {
+  const x = xOf(i);
+  scene.insertAdjacentHTML('beforeend',
+    `<div class="knot" data-i="${i}" style="left:${x}px;--c:${p.color};--hd:${i * .3}s"></div>
+     <div class="label" data-i="${i}" style="left:${x}px;--c:${p.color}">${p.label}</div>
+     <div class="card" data-i="${i}" style="left:${x}px;top:${CARD_TOP}px;--c:${p.color}">
+       <h3>${p.name}</h3><p>${p.desc}</p></div>`);
+});
+
+/* each card flies out of its own marker, so the reveal says "this came from here" */
+document.querySelectorAll('.card').forEach(el => {
+  el.style.setProperty('--sy', (DOTY - CARD_TOP - el.offsetHeight / 2) + 'px');
+});
+
+/* ── the step machine: everything derived from `step`, never incremented ─── */
+let step = -1, cur = 0;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function applyStep(n){
+  step = Math.max(-1, Math.min(n, ITEMS.length - 1));
+  scene.querySelectorAll('.knot,.label,.card').forEach(el =>
+    el.classList.toggle('on', +el.dataset.i <= step));
+  document.getElementById('progress').style.width =
+    ((step + 1) / ITEMS.length * 100) + '%';
+}
+
+function goTo(i){
+  cur = Math.max(0, Math.min(i, slides.length - 1));
+  slides.forEach((s, k) => s.classList.toggle('is-active', k === cur));
+  if (cur === 1) applyStep(reduced ? ITEMS.length - 1 : -1);
+}
+function next(){ cur === 0 ? goTo(1) : (step < ITEMS.length - 1 && applyStep(step + 1)); }
+function prev(){ (cur === 1 && step > -1) ? applyStep(step - 1) : (cur > 0 && goTo(cur - 1)); }
+
+addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'ArrowRight' || e.key === ' '){ e.preventDefault(); next(); }
+  if (e.key === 'ArrowLeft'){ e.preventDefault(); prev(); }
+  if (e.key === 'r' || e.key === 'R') applyStep(-1);
+  if (e.key === 'f' || e.key === 'F') applyStep(ITEMS.length - 1);
+});
+bNext.onclick = next; bPrev.onclick = prev;
+bReset.onclick = () => { goTo(1); applyStep(-1); };
+bAll.onclick = () => { goTo(1); applyStep(ITEMS.length - 1); };
+
+/* ── fit the canvas ──────────────────────────────────────────────────────── */
+function fitStage(){
+  const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+  stage.style.transform = `translate(-50%,-50%) scale(${k})`;
+}
+addEventListener('resize', fitStage);
+fitStage();
+
+/* text-derived measurements are wrong until the real faces are in */
+document.fonts && document.fonts.ready.then(() => applyStep(step));
+</script>
+</body>
+</html>

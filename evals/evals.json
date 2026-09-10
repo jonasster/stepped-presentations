@@ -1,0 +1,59 @@
+{
+  "skill_name": "stepped-presentations",
+  "evals": [
+    {
+      "id": 0,
+      "name": "roadmap-from-scratch",
+      "prompt": "I'm presenting our team's 2026 roadmap at an all-hands in about a week and powerpoint is doing my head in. Can you build me an interactive html thing I can click through instead? Six milestones spread across the year — Q1 kickoff, migration off the legacy CRM, the mobile beta, hiring two engineers, the partner integration, and the public launch in november. I want them appearing one at a time as I talk, not all at once. Has to run off my laptop in the meeting room, the wifi in there is terrible.",
+      "expected_output": "A single self-contained HTML file with a fixed logical canvas scaled to the viewport, a step index driving reveal, arrow-key navigation forwards and backwards, six milestones on a timeline, and no network dependencies at runtime.",
+      "files": [],
+      "assertions": [
+        "Output is a single self-contained .html file that opens without a build step",
+        "No JavaScript framework, bundler or CDN script is required for the deck to work",
+        "Uses a fixed logical canvas scaled to the viewport (a scale factor derived from innerWidth/innerHeight)",
+        "All six milestones from the prompt appear in the content",
+        "Reveal is driven by a step index, so milestones appear one at a time rather than all at once",
+        "Backwards navigation works: a left-arrow or equivalent steps the reveal back down",
+        "Keyboard navigation is bound to ArrowRight/ArrowLeft",
+        "Deck still functions with no network: any remote font has a local fallback stack"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "animated-flow-diagram",
+      "prompt": "Need a slide explaining our data pipeline to some non-technical stakeholders on thursday. The flow is ingest -> clean -> enrich -> warehouse -> dashboard, and there are two side branches: a quarantine bucket hanging off clean, and an alerting service off enrich. I'd like the connections between the boxes to animate so people can actually follow where the data goes while I'm talking over it. One html file please, I'll be presenting from a projector.",
+      "expected_output": "A single HTML file with boxes connected by explicitly routed paths (not naive straight lines), animated flow along the connectors that runs only on the active step, stepped reveal, and a prefers-reduced-motion fallback that keeps direction visible.",
+      "files": [],
+      "assertions": [
+        "All five main stages (ingest, clean, enrich, warehouse, dashboard) are present",
+        "Both side branches (quarantine off clean, alerting off enrich) are present and visibly branch off the right stages",
+        "Connectors are SVG paths with explicit coordinates, not CSS-border or div-based lines",
+        "Connector motion is animated along the path (stroke-dashoffset or an equivalent travelling technique)",
+        "Motion is gated to the current step or active element rather than every connector animating at once",
+        "A prefers-reduced-motion block exists",
+        "Under reduced motion the connectors still show direction rather than losing all indication",
+        "Uses a fixed logical canvas scaled to the viewport",
+        "Output is a single self-contained .html file"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "debug-misalignment",
+      "prompt": "Something's off with this deck and I can't work out what. The labels and the cards don't line up with the dots on the rail — they're all shifted over to the right, but by different amounts which is what's confusing me. The 'Recruitment' kicker at the top also sits lower than where I put it. Can you sort it out, and while you're in there add a fifth stage at the end called Onboarding ('First week is mapped out')?",
+      "expected_output": "Identifies that the `pop` keyframe sets `transform: scale(1)` which replaces the base `translate(-50%,…)` on dots and cards (different widths, hence different shifts), and that the missing `p{margin:0}` reset offsets the absolutely-positioned kicker by 1em. Fixes both properly rather than nudging positions, and adds the fifth stage.",
+      "files": [
+        "inputs/pipeline-deck.html"
+      ],
+      "assertions": [
+        "Identifies that the `pop` keyframe setting `transform: scale(1)` replaces the base translate(-50%, ...) as the cause of the horizontal shift",
+        "Explains why the shift differed between elements (dots and cards have different widths, so half-width differs)",
+        "Fixes it by carrying the translate through the keyframe, not by compensating with changed left/top values",
+        "Identifies the missing `p{margin:0}` reset as the cause of the kicker sitting lower than its stated top",
+        "Adds the reset rather than nudging the kicker's top value",
+        "After the fix, dots, labels and cards share the same centre x for every stage",
+        "A fifth Onboarding stage is added with the description 'First week is mapped out'",
+        "The added stage follows the existing data-driven pattern (an entry in the STAGES array, not hand-written markup)"
+      ]
+    }
+  ]
+}
