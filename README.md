@@ -33,6 +33,31 @@ It works the same way on a deck that already exists: adding a slide, changing a 
 fixing a connector that runs through a label, embedding screenshots, making a deck
 self-contained before you email it.
 
+## Fine-tuning in a GUI
+
+Some changes are not worth a conversation. Nudging a card twelve pixels, trying four
+accent colours, fixing a typo, swapping two slides — asking for those and waiting costs
+more than the change is worth. `studio/` is a small editor for exactly that work.
+
+Open a deck folder and you get the outline on one side, your actual deck running on the
+other, and an inspector for whatever you select. Text, item colours, order, the geometry
+constants and the theme tokens are all editable, and the result is written back into your
+source file one literal at a time — every other byte stays as it was, so the file stays
+hand-authorable and the change stays readable in a diff. Nothing is injected into the deck:
+the preview is the bytes that will be saved.
+
+```bash
+python -m http.server 5180 --directory studio
+```
+
+Then open http://localhost:5180/studio.html. It needs Chrome or Edge, and it needs to be
+served rather than double-clicked, because the File System Access API does not work from a
+`file://` page. `studio/README.md` covers the rest, including what it does not do yet.
+
+Everything above the last mile stays with Claude. The spine of a deck, the render pass,
+connector routing and easing are decisions about what the deck means, and those belong in a
+prompt rather than a properties panel.
+
 ## What's here
 
 | Path | What it holds |
@@ -45,6 +70,8 @@ self-contained before you email it.
 | `assets/starter.html` | A working canvas and step machine to build a new single-file deck on |
 | `scripts/inline_assets.py` | Embeds a deck's images as WebP data URIs so the file travels alone |
 | `evals/evals.json` | Three scenarios with assertions: a roadmap from scratch, an animated flow diagram, a misalignment bug |
+| `studio/` | The GUI editor, and the write-back engine that parses a deck and edits single literals in place |
+| `docs/STUDIO-PLAN.md` | Why the studio is scoped the way it is, what it deliberately does not do, and what is still open |
 
 The reference files are loaded on demand rather than upfront, so a small edit does not drag
 in the whole manual.
