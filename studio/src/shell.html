@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stepped Studio</title>
+<style>
+:root{
+  --bg:#16161c; --panel:#1d1d25; --edge:#2c2c38; --ink:#e7e7ef; --dim:#8d8da0;
+  --accent:#7b5cff; --warn:#e0a32e; --ok:#3fbf8f;
+  --sans:"Geist","Segoe UI",system-ui,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+/* an ID rule with display:flex/grid outranks the UA's [hidden]{display:none},
+   which silently leaves both screens on the page at once */
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 var(--sans);overflow:hidden}
+h1,h2,p{margin:0}
+button,input,textarea{font:inherit;color:inherit}
+button{background:var(--panel);border:1px solid var(--edge);border-radius:7px;
+       padding:7px 13px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.4;cursor:default}
+input,textarea{width:100%;background:#131319;border:1px solid var(--edge);border-radius:6px;
+       padding:7px 9px;resize:vertical}
+input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+input[type=color]{padding:2px;height:32px;cursor:pointer}
+input[type=range]{padding:0;accent-color:var(--accent)}
+
+/* ---- welcome ---- */
+#welcome{height:100%;display:flex;flex-direction:column;justify-content:center;
+         align-items:center;gap:18px;padding:40px;text-align:center}
+#welcome h1{font-size:30px;font-weight:650;letter-spacing:-.02em}
+#welcome p{color:var(--dim);max-width:52ch}
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.actions button{padding:10px 18px}
+#openFolder{background:var(--accent);border-color:var(--accent);color:#fff}
+#cap{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:10px}
+#err{color:#ff8f8f;font-family:var(--mono);font-size:12px;max-width:60ch}
+#nofsa label{display:inline-block;border:1px dashed var(--edge);border-radius:7px;
+             padding:9px 16px;cursor:pointer;color:var(--dim)}
+#nofsa input{display:none}
+
+/* ---- app ---- */
+#app{height:100%;display:grid;grid-template-rows:auto 1fr;
+     grid-template-columns:250px 1fr 300px;grid-template-areas:"bar bar bar" "out mid ins"}
+#bar{grid-area:bar;display:flex;align-items:center;gap:12px;padding:9px 14px;
+     border-bottom:1px solid var(--edge);background:var(--panel)}
+#file{font-family:var(--mono);font-size:12px;color:var(--dim)}
+#dirty{font-family:var(--mono);font-size:11px;color:var(--dim);margin-left:auto}
+#dirty.on{color:var(--warn)}
+#bar button{padding:6px 12px}
+
+aside{overflow-y:auto;padding:12px}
+#out{grid-area:out;border-right:1px solid var(--edge)}
+#ins{grid-area:ins;border-left:1px solid var(--edge)}
+aside h2{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+         color:var(--dim);margin:16px 0 8px}
+aside h2:first-child{margin-top:0}
+aside label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;
+            text-transform:uppercase;color:var(--dim);margin:10px 0 4px}
+.hint{color:var(--dim);font-size:12px}
+
+.row{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:7px;cursor:grab;
+     border:1px solid transparent}
+.row:hover{background:#22222c}
+.row.sel{background:#262633;border-color:var(--accent)}
+.row.over{border-color:var(--accent);border-style:dashed}
+.row .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.row .nm{font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .sub{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim);flex:none}
+
+.colorrow{display:flex;gap:8px}
+.colorrow input[type=color]{width:44px;flex:none}
+.hex{font-family:var(--mono);font-size:12px}
+.georow{display:grid;grid-template-columns:1fr 64px;gap:8px;align-items:center;margin-bottom:6px}
+.georow label{grid-column:1/-1;margin:6px 0 0}
+.georow .num{font-family:var(--mono);font-size:12px;padding:5px 6px}
+.georow input[type=color]{grid-column:1/-1}
+
+/* ---- preview ---- */
+#mid{grid-area:mid;position:relative;background:#0e0e13;display:flex;
+     align-items:center;justify-content:center;padding:16px}
+#frame{width:100%;height:100%;border:0;background:#000;border-radius:8px}
+.note{position:absolute;left:50%;transform:translateX(-50%);font-family:var(--mono);
+      font-size:11px;padding:7px 13px;border-radius:7px;white-space:nowrap;z-index:5}
+#stale{top:12px;background:var(--warn);color:#231a00;display:flex;gap:10px;align-items:center}
+#stale button{padding:3px 9px;font-size:11px;background:#231a00;border-color:#231a00;color:#fff}
+#bounds{bottom:12px;background:#b4245e;color:#fff}
+#flash{bottom:12px;background:var(--ok);color:#00291c}
+</style>
+</head>
+<body>
+
+<div id="welcome">
+  <h1>Stepped Studio</h1>
+  <p>Open a deck folder and fine-tune it — the words, the order, the colours, the geometry.
+     Edits are written straight back into your source file, one literal at a time, leaving
+     everything else byte for byte as it was.</p>
+  <div class="actions">
+    <button id="openFolder" type="button">Open deck folder</button>
+    <button id="openFile" type="button">Open single file</button>
+    <button id="openDemo" type="button">Try the starter deck</button>
+  </div>
+  <div id="nofsa" hidden>
+    <label>Load a folder read-only<input id="upload" type="file" webkitdirectory></label>
+  </div>
+  <p id="cap"></p>
+  <p id="err" hidden></p>
+</div>
+
+<div id="app" hidden>
+  <div id="bar">
+    <strong>Stepped Studio</strong>
+    <span id="file"></span>
+    <span id="dirty"></span>
+    <button id="undo" type="button">Undo</button>
+    <button id="save" type="button">Save</button>
+  </div>
+
+  <aside id="out"><h2>Outline</h2><div id="outline"></div></aside>
+
+  <div id="mid">
+    <iframe id="frame" title="deck preview"></iframe>
+    <div id="stale" class="note" hidden>This file changed on disk
+      <button id="reloadDisk" type="button">Reload</button></div>
+    <div id="bounds" class="note" hidden></div>
+    <div id="flash" class="note" hidden></div>
+  </div>
+
+  <aside id="ins">
+    <div id="inspector"></div>
+    <h2>Geometry</h2><div id="geometry"></div>
+    <h2>Theme</h2><div id="theme"></div>
+  </aside>
+</div>
+
+<script>/*BUNDLE*/</script>
+</body>
+</html>
