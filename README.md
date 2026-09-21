@@ -33,6 +33,24 @@ It works the same way on a deck that already exists: adding a slide, changing a 
 fixing a connector that runs through a label, embedding screenshots, making a deck
 self-contained before you email it.
 
+## How it starts
+
+A deck is something a person stands up beside, so the skill settles the brief before it writes
+any HTML. It reads the request for how much room you want in the process and works one of two
+ways.
+
+One-shot is the default when the brief already stands up on its own: a date, the content, and
+somewhere it has to run. It asks at most three questions, or none, then builds the whole thing
+and lists back the decisions it made for you so you can overturn them.
+
+Workshop is for when the content is not written yet, there is a brand to honour, or you have
+opinions about the look. It asks around five questions in one batch, each with a default
+attached, then stops at four checkpoints: the walking skeleton, the layout, the words, and the
+finished deck. Every stop sits at a seam in the build order, so backing out of a decision does
+not cost you the work that came after it.
+
+Editing a deck you already have skips all of this.
+
 ## Fine-tuning in a GUI
 
 Some changes are not worth a conversation. Nudging a card twelve pixels, trying four
@@ -62,14 +80,14 @@ prompt rather than a properties panel.
 
 | Path | What it holds |
 |---|---|
-| `SKILL.md` | The entry point Claude reads first: the five ideas the format rests on, single-file vs split, build order |
+| `SKILL.md` | The entry point Claude reads first: the five ideas the format rests on, how it settles the brief before building, single-file vs split, build order |
 | `references/engine.md` | The stage, the step machine, camera, deep links, data to DOM |
 | `references/motion.md` | Reveals, ambient loops, travelling pulses, connectors, reduced motion |
 | `references/house-style.md` | Type, colour, spacing, offline fonts, and how not to look generated |
 | `references/verification.md` | The checklist to run in a browser before calling a visual change done |
 | `assets/starter.html` | A working canvas and step machine to build a new single-file deck on |
 | `scripts/inline_assets.py` | Embeds a deck's images as WebP data URIs so the file travels alone |
-| `evals/evals.json` | Three scenarios with assertions: a roadmap from scratch, an animated flow diagram, a misalignment bug |
+| `evals/evals.json` | Four scenarios with assertions: a roadmap from scratch, an animated flow diagram, a misalignment bug, and a vague brief that should be questioned before anything is built |
 | `studio/` | The GUI editor, and the write-back engine that parses a deck and edits single literals in place |
 | `docs/STUDIO-PLAN.md` | Why the studio is scoped the way it is, what it deliberately does not do, and what is still open |
 
@@ -121,5 +139,6 @@ changing any image, and use `--clear` to go back to loading from disk.
 
 ## Evals
 
-`evals/evals.json` holds three prompts with assertions covering a deck built from scratch,
-an animated diagram with branches, and a debugging pass on an existing file.
+`evals/evals.json` holds four prompts with assertions covering a deck built from scratch,
+an animated diagram with branches, a debugging pass on an existing file, and a vague brief where
+the right first move is a short round of questions.

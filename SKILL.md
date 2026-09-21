@@ -69,6 +69,78 @@ points, label collisions and font metrics interact in ways that are not visible 
 change that reads correctly is not evidence. Open it, measure it, look at it. See
 `references/verification.md` — this is the single biggest source of wasted rounds.
 
+## Before you build: settle the brief
+
+You are not producing a document, you are producing the thing someone stands up beside. Guessing
+wrong is not a bad diff — it is them rehearsing against a deck that says something they do not
+mean. One round of questions is far cheaper than one wasted build.
+
+So open every new deck by **picking a mode and asking only the questions that change what you
+write**. Batch them into a single message, propose a default for each, and make "those are fine,
+go" a complete answer. Do not send a second round of questions before you have built something.
+
+### Two modes
+
+| | **One-shot** | **Workshop** |
+|---|---|---|
+| The ask sounds like | "I present Thursday", "just make me something", content already pasted in | "help me work out how to show this", a brand or reference, opinions about the look |
+| Questions | one round, blockers only, three at most — often none | one round, about five, taste included |
+| You deliver | the whole deck, then the list of decisions you made on their behalf | a skeleton first, then checkpoints |
+| The risk you are managing | wasting their afternoon | building the wrong thing beautifully |
+
+Signals for one-shot: a named date, the words *quick* or *just*, concrete content supplied,
+"I don't mind how it looks". Signals for workshop: the content does not exist yet, there is a
+brand or a reference image, the audience is a board or a client or a conference, or they are
+already describing how it should feel.
+
+When the signals are mixed, **say which mode you are assuming in the same message as the
+questions** and let them flip it. Do not spend a round trip asking "would you like to iterate?" —
+that is process, and process is not what they came for.
+
+### What is worth asking
+
+Six things change the build. Ask only the ones the request has not already answered — a brief
+that covers them all earns **zero questions**, and a well-briefed person who gets asked anyway
+reads it as stalling. In that case say what you are assuming in one line and build.
+
+1. **The occasion, and how long they talk.** Ten minutes is roughly 8–12 steps; an hour is
+   several slides. Step count sets density, and density sets everything else.
+2. **The spine** — timeline, flow, comparison, journey, or a set of things? The spine *is* the
+   geometry, and it is the one answer that is expensive to change afterwards.
+3. **The look** — a brand, a reference image, a deck to match, or house style. Offering "house
+   style unless you have something" makes this a one-word answer.
+4. **Where it runs** — their laptop into a projector, a shared screen, or emailed around? This
+   decides aspect ratio, whether assets must be inlined, and how hard offline has to be.
+5. **The words** — do they have them, or are you writing them? If you are writing them, write
+   them as plain text and get them agreed before any HTML exists. Prose is much cheaper to
+   argue about outside a scene.
+6. **Who edits it after you.** If that is someone who does not read JavaScript, split the content
+   out even for a short deck.
+
+Ask nothing you can decide and show. Colour with no brand to follow, easing curves, label
+placement, marker shape — decide those, build them, and let the deck ask the question.
+
+### Checkpoints, in workshop mode
+
+Stop at the seams of the build order rather than at intervals, and show something at every stop:
+
+| Stop | What you show | What you are asking |
+|---|---|---|
+| After the skeleton | the canvas walking end to end on placeholder boxes | is the spine right, and the step count? |
+| After layout | real geometry, unstyled, no motion | does the picture explain the thing? |
+| After content | the real words in place | is anything wrong or missing? |
+| After style and motion | the deck | anything to change before you rehearse? |
+
+Each stop is cheap to reverse precisely because nothing downstream of it exists yet — that is
+what the build order is for. Keep the question at each stop closed and small. "Is the spine
+right?" gets you an answer; "thoughts?" gets you a rewrite.
+
+### Editing a deck that already exists
+
+No intake. Make the change, verify it, report it. Ask only when the request is genuinely
+ambiguous about *what* to change — never about how you should do it, and never to float
+improvements you noticed on the way. Those belong in the report, where they can be declined.
+
 ## Choosing the shape
 
 | | Single self-contained file | Multi-file with data/engine split |
@@ -102,7 +174,7 @@ token set and the reasoning.
 
 1. **Establish the canvas and the step machine first**, with placeholder boxes. Get `→`/`←`
    walking end to end before any content or styling exists. Every later problem is easier to see
-   against a working skeleton.
+   against a working skeleton, and in workshop mode this is the first thing you show.
 2. **Lay out the geometry as data** — positions, tiers, months, whatever the scene's axis is —
    and derive the DOM from it.
 3. **Add the content**, still unstyled.

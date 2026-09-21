@@ -1,0 +1,274 @@
+:root{
+  --paper:#eff1f5;
+  --ink:#211a52;
+  --ink-2:#5b6070;
+  --ink-3:#8b8f9c;
+  --line:#dfe3ea;
+  --accent:#4a2fe0;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --sans:"Geist","Segoe UI",system-ui,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(.2,.75,.25,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:#12121a;color:var(--ink);font-family:var(--sans);overflow:hidden}
+p,h1,h2,h3,ul,ol,figure{margin:0}
+img{display:block;max-width:100%}
+
+#viewport{position:fixed;inset:0}
+#stage{width:1920px;height:1080px;position:absolute;left:50%;top:50%;
+       background:var(--paper);overflow:hidden;transform-origin:center}
+
+.slide{position:absolute;inset:0;padding:96px 130px 110px;display:flex;flex-direction:column;
+       opacity:0;visibility:hidden;
+       transition:opacity .38s var(--ease),visibility .38s}
+.slide.is-active{opacity:1;visibility:visible}
+
+/* ── fælles hoved ────────────────────────────────────────────────────────── */
+.kicker{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-weight:700;
+        font-size:18px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-3)}
+.kicker::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.slide h2{margin-top:20px;font-family:var(--display);font-weight:800;font-size:86px;
+          line-height:.96;text-transform:uppercase;max-width:24ch}
+.lede{margin-top:18px;max-width:74ch;font-size:26px;line-height:1.45;color:var(--ink-2)}
+.slide-head{min-height:200px}
+.slide.has-lede .slide-head{min-height:264px}
+.slide-head{flex:none}
+.body{flex:1 1 auto;min-height:0;margin-top:52px}
+
+/* ── afsløring ───────────────────────────────────────────────────────────── */
+.rv{opacity:0;transition:opacity .34s var(--ease),transform .44s var(--ease)}
+.rv.on{opacity:1}
+
+/* ── 1 · titel ───────────────────────────────────────────────────────────── */
+.k-title{padding:96px 130px;display:block}
+.t-grid{height:100%;display:grid;grid-template-columns:860px 1fr;gap:60px;align-items:center}
+.t-text{align-self:center}
+.k-title h1{margin-top:22px;font-family:var(--display);font-weight:800;font-size:132px;
+            line-height:.9;text-transform:uppercase;max-width:13ch}
+.t-lede{margin-top:26px;font-size:30px;max-width:30ch;color:var(--ink-2)}
+.t-meta{margin-top:34px;font-family:var(--mono);font-weight:500;font-size:21px;
+        letter-spacing:.03em;color:var(--ink)}
+.t-keys{margin-top:12px;font-family:var(--mono);font-weight:500;font-size:17px;color:var(--ink-3)}
+
+/* skitsen der bygger sig selv om til en grænseflade, og forfra: hele workshoppen
+   i ét loop. 10s — langsomt nok til at man kan nå at se hvad der sker. */
+.t-anim{justify-self:center;text-align:center}
+.t-anim svg{width:640px;height:462px}
+.t-anim .win{fill:#fff;stroke:var(--line);stroke-width:2}
+.t-anim .winbar{fill:#f3f4f8}
+.t-anim .wdot{fill:#d4d7e0}
+.t-anim .sk{stroke:#a9adbb;stroke-width:2.5;stroke-linecap:round;animation:skFade 10s var(--ease) infinite}
+.t-anim .sk *{stroke-dasharray:1400;stroke-dashoffset:1400;
+              animation:skDraw 10s var(--ease) infinite}
+.t-anim .ui{opacity:0;animation:uiIn 10s var(--ease) infinite}
+.t-anim .ui .bar{fill:var(--accent)}
+.t-anim .ui .barln{fill:#fff;opacity:.85}
+.t-anim .ui .ubox{fill:#fff;stroke:var(--line);stroke-width:2}
+.t-anim .ui .pip{fill:var(--accent);opacity:.25}
+.t-anim .ui .ln{fill:#c9ccd8}
+.t-anim .ui .ln.s{fill:#dfe2ea}
+.t-anim .ui .btn{fill:var(--accent);animation:btnTap 10s var(--ease) infinite}
+.t-anim .ui .btnln{fill:#fff;opacity:.9}
+.t-anim .cur{fill:var(--ink);opacity:0;animation:curIn 10s var(--ease) infinite}
+.t-anim-cap{margin-top:18px;font-family:var(--mono);font-weight:700;font-size:19px;
+            letter-spacing:.3em;text-transform:uppercase;position:relative;height:24px}
+.t-anim-cap span{position:absolute;left:0;right:0}
+.t-anim-cap .l1{color:var(--ink-3);animation:capA 10s var(--ease) infinite}
+.t-anim-cap .l2{color:var(--accent);opacity:0;animation:capB 10s var(--ease) infinite}
+
+@keyframes skDraw{0%{stroke-dashoffset:1400}20%,100%{stroke-dashoffset:0}}
+@keyframes skFade{0%,44%{opacity:1}56%,94%{opacity:.14}100%{opacity:1}}
+@keyframes uiIn{0%,44%{opacity:0;transform:translateY(12px)}
+                56%,94%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(12px)}}
+@keyframes btnTap{0%,74%{transform:scale(1)}78%{transform:scale(.97)}82%,100%{transform:scale(1)}}
+@keyframes curIn{0%,58%{opacity:0;transform:translate(300px,470px)}
+                 64%{opacity:1;transform:translate(300px,470px)}
+                 76%,86%{opacity:1;transform:translate(500px,430px)}
+                 94%,100%{opacity:0;transform:translate(500px,430px)}}
+@keyframes capA{0%,46%{opacity:1}54%,100%{opacity:0}}
+@keyframes capB{0%,46%{opacity:0}54%,94%{opacity:1}100%{opacity:0}}
+
+/* ── kort på række ───────────────────────────────────────────────────────── */
+.num{font-family:var(--mono);font-weight:700;font-size:17px;color:var(--accent);
+     letter-spacing:.1em;flex:none}
+.cards{flex:0 0 auto;margin:auto 0;display:flex;gap:var(--gap);align-items:stretch}
+.card{padding:30px 32px 34px;background:#fff;border:1px solid var(--line);border-radius:16px;
+      border-top:3px solid var(--accent);transform:translateY(14px)}
+.card.on{transform:none}
+.card h3{margin-top:16px;font-family:var(--display);font-weight:800;font-size:40px;
+         line-height:1.02;text-transform:uppercase}
+.card p{margin-top:14px;font-size:22px;line-height:1.5;color:var(--ink-2)}
+
+/* ── todelt: trin til venstre, skærmbillede eller tegning til højre ──────── */
+.split{display:grid;grid-template-columns:560px 1fr;gap:60px;align-items:center}
+.col-steps ol.tight{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px}
+.trow{display:grid;grid-template-columns:34px 1fr;gap:16px;padding-bottom:11px;
+      border-bottom:1px solid var(--line);transform:translateY(8px)}
+.trow:last-child{border-bottom:0;padding-bottom:0}
+.trow.on{transform:none}
+.trow .num{padding-top:6px;font-size:16px}
+.trow h3{font-family:var(--display);font-weight:800;font-size:28px;line-height:1.04;
+         text-transform:uppercase}
+.trow code{display:inline-block;margin-top:6px;padding:4px 9px;border-radius:6px;
+           background:#1b1930;color:#e8e6ff;font-family:var(--mono);font-weight:500;font-size:16px}
+.trow p{margin-top:6px;font-size:18px;line-height:1.42;color:var(--ink-2)}
+
+.shotfig{margin:0}
+.shotfig img{width:100%;max-height:500px;object-fit:contain;object-position:top;
+             border:1px solid var(--line);border-radius:14px;background:#fff}
+.shotfig figcaption{margin-top:12px;font-family:var(--mono);font-weight:500;font-size:17px;
+                    color:var(--ink-3)}
+.scene-box svg{width:100%;height:auto;max-height:540px}
+
+/* crazy 8s */
+.c8 rect{fill:#fff;stroke:var(--line);stroke-width:2}
+.c8i .k{fill:none;stroke:#b9bcc9;stroke-width:2.5;stroke-linecap:round}
+.c8i .k.f{fill:#e6e8ef;stroke:none}
+.c8pick rect{fill:none;stroke:var(--accent);stroke-width:3}
+.c8pick text{font-family:var(--mono);font-weight:700;font-size:19px;fill:var(--accent);
+             letter-spacing:.2em;text-transform:uppercase}
+
+/* tre skærme */
+.sc > rect{fill:#fff;stroke:var(--line);stroke-width:2}
+.sc .k{fill:none;stroke:#b9bcc9;stroke-width:2.5;stroke-linecap:round}
+.sc rect.k{fill:#e6e8ef;stroke:none}
+.sc .scnum{font-family:var(--mono);font-weight:700;font-size:19px;fill:var(--ink-3);
+           letter-spacing:.18em;text-transform:uppercase}
+.scb rect{fill:var(--accent)}
+.scb text{font-family:var(--sans);font-weight:600;font-size:19px;fill:#fff}
+.scarrow{fill:none;stroke:var(--accent);stroke-width:3}
+.scarrow + .scarrow{stroke:var(--accent)}
+#sl-tre-skaerme marker path{fill:var(--accent)}
+
+/* ── nummereret liste ────────────────────────────────────────────────────── */
+.steps{display:flex;flex-direction:column;justify-content:center;gap:16px}
+.srow{display:grid;grid-template-columns:52px 600px 1fr;align-items:start;gap:28px;
+      padding:20px 26px;background:#fff;border:1px solid var(--line);border-radius:14px;
+      border-left:3px solid var(--line);transform:translateY(10px)}
+.srow.on{transform:none;border-left-color:var(--accent)}
+.srow .num{padding-top:8px;font-size:19px}
+.srow h3{font-family:var(--display);font-weight:800;font-size:34px;line-height:1.04;
+         text-transform:uppercase}
+.srow code{display:inline-block;margin-top:10px;padding:6px 12px;border-radius:7px;
+           background:#1b1930;color:#e8e6ff;font-family:var(--mono);font-weight:500;font-size:20px}
+.srow > p{padding-top:6px;font-size:21px;line-height:1.5;color:var(--ink-2)}
+
+/* ── casen ───────────────────────────────────────────────────────────────── */
+.brief{flex:0 0 auto;margin:auto 0;position:relative;padding:34px 44px 40px;background:#fff;border:1px solid var(--line);
+       border-radius:18px;display:flex;flex-direction:column;gap:22px}
+.brief-tag{position:absolute;top:-15px;left:44px;padding:5px 14px;border-radius:6px;
+           background:var(--accent);color:#fff;font-family:var(--mono);font-weight:700;
+           font-size:16px;letter-spacing:.22em;text-transform:uppercase}
+.brow{display:grid;grid-template-columns:340px 1fr;gap:40px;align-items:baseline;
+      padding-bottom:22px;border-bottom:1px solid var(--line);transform:translateX(-10px)}
+.brow:last-child{padding-bottom:0;border-bottom:0}
+.brow.on{transform:none}
+.brow h3{font-family:var(--mono);font-weight:700;font-size:19px;letter-spacing:.2em;
+         text-transform:uppercase;color:var(--accent)}
+.brow p{font-size:26px;line-height:1.45}
+
+/* ── prompts ─────────────────────────────────────────────────────────────── */
+.prompts{display:flex;flex-direction:column;justify-content:center;gap:22px}
+.prow{transform:translateY(10px)}
+.prow.on{transform:none}
+.phead{display:flex;align-items:baseline;gap:18px}
+.phead h3{font-family:var(--display);font-weight:800;font-size:36px;text-transform:uppercase}
+.phead span{font-family:var(--mono);font-weight:500;font-size:18px;color:var(--ink-3)}
+.prow code{display:block;margin-top:10px;padding:20px 24px;border-radius:12px;
+           background:#1b1930;color:#e8e6ff;font-family:var(--mono);font-weight:500;
+           font-size:21px;line-height:1.5}
+
+/* ── scener med absolut geometri ─────────────────────────────────────────── */
+.scene{position:absolute;inset:0;margin:0}
+.scene > *{position:absolute}
+
+/* tidslinje */
+.axis{height:2px;background:var(--line);transform:translateY(-50%)}
+.tknot{width:20px;height:20px;border-radius:50%;background:var(--line);
+       transform:translate(-50%,-50%) scale(.5)}
+.tknot.on{background:var(--accent);transform:translate(-50%,-50%) scale(1)}
+.tname{transform:translate(-50%,-100%);text-align:center;font-family:var(--display);
+       font-weight:800;font-size:30px;line-height:1;text-transform:uppercase;color:var(--ink)}
+.ttime{transform:translateX(-50%);font-family:var(--mono);font-weight:700;font-size:19px;
+       color:var(--ink-3)}
+
+/* kun den knude vi står på, pulserer — bevægelsen peger på nutiden */
+.tknot.on.now::after{content:"";position:absolute;inset:0;border-radius:50%;
+  background:var(--accent);animation:halo 3.6s var(--ease) infinite}
+@keyframes halo{0%{transform:scale(1);opacity:.22}70%,100%{transform:scale(2.8);opacity:0}}
+
+/* kurve */
+.cv .ax{stroke:var(--line);stroke-width:2}
+.cv .cvline{fill:none;stroke:var(--accent);stroke-width:4;stroke-linecap:round}
+.cv .cvdot{fill:var(--accent)}
+.cv .hi{fill:var(--ink-3)}
+.cv .cvlab{font-family:var(--mono);font-weight:700;font-size:20px;fill:var(--accent);
+            letter-spacing:.16em;text-transform:uppercase}
+.cv .hiy{fill:var(--ink-3)}
+.cvaxis{font-family:var(--mono);font-weight:500;font-size:18px;letter-spacing:.2em;
+        text-transform:uppercase;color:var(--ink-3)}
+.cvaxis.y{transform:rotate(-90deg);transform-origin:left top;white-space:nowrap}
+.cvnotes{width:700px;display:flex;flex-direction:column;gap:26px}
+.cvnote{transform:translateY(10px)}
+.cvnote.on{transform:none}
+.cvnote h3{font-family:var(--display);font-weight:800;font-size:34px;line-height:1.04;
+           text-transform:uppercase}
+.cvnote p{margin-top:8px;font-size:21px;line-height:1.45;color:var(--ink-2)}
+
+/* byggeloop */
+.ring{left:0;top:0}
+.ring .arc{fill:none;stroke:var(--line);stroke-width:3}
+.ring .arc.on{stroke:var(--accent)}
+.ring marker path{fill:var(--accent)}
+.lnode{padding:22px 26px;background:#fff;border:1px solid var(--line);
+       border-radius:14px;border-top:3px solid var(--accent);transform:translateY(12px)}
+.lnode.on{transform:none}
+.larrow,.lback{fill:none;stroke:var(--line);stroke-width:3}
+.larrow.on,.lback.on{stroke:var(--accent)}
+#sl-loop marker path{fill:var(--accent)}
+.lnode h3{margin-top:8px;font-family:var(--display);font-weight:800;font-size:32px;
+          line-height:1.04;text-transform:uppercase}
+.lnode p{margin-top:6px;font-size:20px;line-height:1.4;color:var(--ink-2)}
+.lcenter{transform:translate(-50%,-50%);padding:4px 18px;background:var(--paper);
+         text-align:center;font-family:var(--mono);
+         font-weight:700;font-size:20px;color:var(--ink-3);line-height:1.5;white-space:nowrap}
+
+
+/* prikken der kører rundt: loopet gentager sig, og det er hele pointen */
+.orbit{width:15px;height:15px;margin:-7.5px 0 0 -7.5px;left:0;top:0;border-radius:50%;
+       background:var(--accent);opacity:0;offset-rotate:0deg;
+       transition:opacity .5s var(--ease);
+       animation:orbit 11s linear infinite;animation-play-state:paused}
+.slide.done .orbit{opacity:1;animation-play-state:running}
+@keyframes orbit{from{offset-distance:0%}to{offset-distance:100%}}
+
+/* ── vedvarende chrome ───────────────────────────────────────────────────── */
+#meta{position:absolute;z-index:10;top:52px;right:130px;display:flex;align-items:baseline;
+      gap:26px;font-family:var(--mono);font-weight:500;font-size:19px;color:var(--ink-3)}
+#meta #clock{font-weight:700;color:var(--ink)}
+#progress{position:fixed;left:0;bottom:0;height:3px;background:var(--accent);width:0;
+          transition:width .35s var(--ease);z-index:50}
+#chrome{position:fixed;left:0;right:0;bottom:16px;display:flex;justify-content:center;gap:9px;
+        opacity:0;transition:opacity .25s;z-index:50}
+#viewport:hover #chrome{opacity:1}
+#chrome button{font-family:var(--mono);font-size:12px;color:#c8cad6;cursor:pointer;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+  border-radius:6px;padding:7px 13px}
+
+/* fejlfindings-slidet har sin egen farve — det er den ene advarsel i dækket */
+#sl-galt{--accent:#c0620e}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition-duration:.001s!important}
+  /* en indikator der forsvinder er en fejl: halo bliver en stående ring */
+  .tknot.on.now::after{opacity:.22;transform:scale(2)}
+  /* forsiden fryser på slutbilledet: prototypen, ikke en halv skitse */
+  .t-anim .sk{opacity:.14}
+  .t-anim .sk *{stroke-dashoffset:0}
+  .t-anim .ui{opacity:1}
+  .t-anim .cur{opacity:0}
+  .t-anim-cap .l1{opacity:0}
+  .t-anim-cap .l2{opacity:1}
+}
