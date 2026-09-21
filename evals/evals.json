@@ -15,7 +15,9 @@
         "Reveal is driven by a step index, so milestones appear one at a time rather than all at once",
         "Backwards navigation works: a left-arrow or equivalent steps the reveal back down",
         "Keyboard navigation is bound to ArrowRight/ArrowLeft",
-        "Deck still functions with no network: any remote font has a local fallback stack"
+        "Deck still functions with no network: any remote font has a local fallback stack",
+        "Does not stall on an intake round: the prompt already gives the occasion, the spine, the content and where it runs, so the deck is produced in this turn",
+        "Any decision made on the user's behalf (visual style, step count, layout) is stated back as an assumption they can overturn"
       ]
     },
     {
@@ -33,7 +35,8 @@
         "A prefers-reduced-motion block exists",
         "Under reduced motion the connectors still show direction rather than losing all indication",
         "Uses a fixed logical canvas scaled to the viewport",
-        "Output is a single self-contained .html file"
+        "Output is a single self-contained .html file",
+        "Does not stall on an intake round: the prompt already gives the spine, the content, the format and where it runs, so the deck is produced in this turn"
       ]
     },
     {
@@ -52,7 +55,26 @@
         "Adds the reset rather than nudging the kicker's top value",
         "After the fix, dots, labels and cards share the same centre x for every stage",
         "A fifth Onboarding stage is added with the description 'First week is mapped out'",
-        "The added stage follows the existing data-driven pattern (an entry in the STAGES array, not hand-written markup)"
+        "The added stage follows the existing data-driven pattern (an entry in the STAGES array, not hand-written markup)",
+        "Makes the requested change directly, with no intake questions, since the deck already exists"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "vague-brief-intake",
+      "prompt": "We've got a pitch to a fairly big client in a few weeks and I'd love something proper to click through rather than the usual slides. It's about the rebrand work we did for them. I'm not sure yet exactly what goes in it or how many sections, and it needs to look premium — we do have brand guidelines somewhere. Can you help me put it together?",
+      "expected_output": "One batched round of at most five questions covering the spine, the content, the brand guidelines, the length and where it will be presented, each with a proposed default, plus a stated assumption that this is a back-and-forth build rather than a one-shot. No finished deck before the brief is settled.",
+      "files": [],
+      "assertions": [
+        "Responds with a single batched round of questions rather than one question at a time",
+        "Asks no more than five questions",
+        "Questions come with a proposed default or a short option set, so 'those are fine, go' is a complete answer",
+        "States which way of working it is assuming (a back-and-forth build with checkpoints rather than a one-shot) and leaves the user free to switch",
+        "Asks what shape the content takes — a timeline, a flow, a comparison, a set of cases — since this determines the geometry",
+        "Asks for the brand guidelines or a reference rather than inventing a visual identity for a client pitch",
+        "Does not ask about decisions it could make and show, such as easing curves, marker shapes or exact colour values",
+        "Does not deliver a finished, styled deck before the brief is settled",
+        "Does not ask process questions such as whether the user would like to iterate"
       ]
     }
   ]
