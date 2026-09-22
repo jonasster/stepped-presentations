@@ -1,0 +1,666 @@
+:root{
+  /* de fire epokefarver. Alt andet accentfarvet peger herind */
+  --c-hum:#137a5e; --c-ias:#4a2fe0; --c-its:#0c6aa8; --c-nu:#a8327d;
+
+  --shell:#12121a;      /* uden for lærredet */
+  --paper:#eff1f5;      /* lærredet */
+  --surface:#fff;       /* kort, bobler, kasser i diagrammerne */
+  --surface-2:#e8eaf1;  /* chips, taster, serverenheder */
+  --face:#fff;          /* bygningsflader i landsbyen på forsiden */
+  --quote:#f2f4f8;      /* citater og linkkort på lyse bobler */
+  --hairline:#c2c7d4;   /* de tynde streger i diagrammerne */
+  --hover:#e3e6ee;      /* rækker i indholdsoversigten */
+  /* tekst og flader der ligger OVENPÅ accentfarven. I lyst tema er accenten
+     mørk og teksten hvid; i mørkt tema er den lys, og så skal teksten vendes */
+  --on-accent:#fff;
+  --on-accent-2:rgba(255,255,255,.74);
+  --on-accent-veil:rgba(255,255,255,.13);
+  --on-accent-edge:rgba(255,255,255,.28);
+
+  --pos:#137a5e;        /* vundet */
+  --neg:#b6304b;        /* mistet, og den overklippede linje */
+
+  --ink:#1b1a35;
+  --ink-2:#565b6c;
+  --ink-3:#63677a;
+  --line:#dde1e9;
+  --accent:var(--c-ias);
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --sans:"Geist","Segoe UI",system-ui,sans-serif;
+  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease:cubic-bezier(.2,.75,.25,1);
+}
+/* et slide eller en spalte får sin farve ved at bære en af disse */
+.acc-hum{--accent:var(--c-hum)}
+.acc-ias{--accent:var(--c-ias)}
+.acc-its{--accent:var(--c-its)}
+.acc-nu{--accent:var(--c-nu)}
+
+/* ── mørkt tema ──────────────────────────────────────────────────────────── */
+/* Accenterne løftes: de mættede farver fra det lyse tema forsvinder mod en
+   mørk baggrund. Flader, streger og blæk vендes om, resten arver. */
+[data-theme="dark"]{
+  --c-hum:#35b98f; --c-ias:#8b74ff; --c-its:#4aa8e8; --c-nu:#e070b8;
+  --shell:#05050a;
+  --paper:#14141c;
+  --surface:#1e1e29;
+  --surface-2:#2a2a37;
+  --face:#2f2f3f;
+  --quote:#2a2a37;
+  --hairline:#414152;
+  --hover:#2a2a37;
+  --pos:#35b98f;
+  --neg:#e05c78;
+  --ink:#edeff6;
+  --ink-2:#a6aaba;
+  --ink-3:#8a90a1;
+  --line:#32323f;
+  --on-accent:#10101a;
+  --on-accent-2:rgba(0,0,0,.6);
+  --on-accent-veil:rgba(0,0,0,.13);
+  --on-accent-edge:rgba(0,0,0,.24);
+}
+/* portrættet er fotograferet på lys baggrund og ville lyse som en lampe */
+[data-theme="dark"] .me-face{filter:brightness(.82) contrast(1.04)}
+
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--shell);color:var(--ink);font-family:var(--sans);overflow:hidden}
+p,h1,h2,h3,ul,ol,figure,dl{margin:0}
+img{display:block;max-width:100%}
+
+#viewport{position:fixed;inset:0}
+#stage{width:1920px;height:1080px;position:absolute;left:50%;top:50%;
+       background:var(--paper);overflow:hidden;transform-origin:center;
+       transition:background-color .25s linear}
+
+.slide{position:absolute;inset:0;padding:96px 130px 110px;display:flex;flex-direction:column;
+       opacity:0;visibility:hidden;transform:translateY(18px);
+       transition:opacity .38s var(--ease),visibility .38s,transform .46s var(--ease)}
+.slide.is-active{opacity:1;visibility:visible;transform:none}
+
+/* ── fælles hoved ────────────────────────────────────────────────────────── */
+.kicker{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-weight:700;
+        font-size:18px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-3)}
+.kicker::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.slide h2{margin-top:20px;font-family:var(--display);font-weight:800;font-size:86px;
+          line-height:.96;text-transform:uppercase;max-width:24ch}
+.lede{margin-top:18px;max-width:92ch;font-size:26px;line-height:1.45;color:var(--ink-2)}
+.slide-head{flex:none;min-height:200px}
+.slide.has-lede .slide-head{min-height:264px}
+.body{flex:1 1 auto;min-height:0;margin-top:52px}
+
+/* ── afsløring ───────────────────────────────────────────────────────────── */
+.rv{opacity:0;transition:opacity .34s var(--ease),transform .44s var(--ease)}
+.rv.on{opacity:1}
+
+/* ── 1 · forsiden ────────────────────────────────────────────────────────── */
+.k-title{padding:96px 130px;display:block}
+.t-grid{height:100%;display:grid;grid-template-columns:830px 1fr;gap:60px;align-items:center}
+.k-title h1{margin-top:22px;font-family:var(--display);font-weight:800;font-size:150px;
+            line-height:.88;text-transform:uppercase;max-width:11ch}
+.t-lede{margin-top:28px;font-size:29px;max-width:32ch;color:var(--ink-2)}
+.t-meta{margin-top:36px;font-family:var(--mono);font-weight:500;font-size:21px;
+        letter-spacing:.02em;color:var(--ink)}
+
+/* Landsbyen: tre huse, og CDUL der flytter ind i dem på skift. Markøren tager
+   husets farve, så man kan se rammen smitte af på afdelingen. 12 sekunder. */
+.t-anim{justify-self:center;text-align:center}
+.vil{width:700px;height:438px}
+.b0{--c:var(--c-hum)} .b1{--c:var(--c-ias)} .b2{--c:var(--c-its)}
+
+.vil .grund{fill:var(--line)}
+.vil .flade{fill:var(--face)}
+/* skyggerne ligger fast ovenpå fladen, så den samme farve giver tre nuancer */
+.vil .skygge{pointer-events:none}
+.vil .skygge.lys{fill:#000;opacity:.10}
+.vil .skygge.dyb{fill:#000;opacity:.24}
+.vil .rude{fill:#fff;opacity:.5}
+.vil .v-navn{font-family:var(--display);font-weight:800;font-size:34px;
+             text-transform:uppercase;fill:var(--ink-3)}
+.vil .v-aar{font-family:var(--mono);font-weight:700;font-size:19px;fill:var(--ink-3)}
+
+/* det aktive hus lyser op, og navn og årstal følger med */
+.vil .bld .flade{animation:husOn 12s var(--ease) infinite}
+.vil .bld .grund{animation:grundOn 12s var(--ease) infinite}
+.vil .bld .v-navn,.vil .bld .v-aar{animation:husTekst 12s var(--ease) infinite}
+/* .vil skal med: uden den er disse vælgere mindre specifikke end reglerne
+   ovenfor, hvis animation-genvej nulstiller forsinkelsen til nul */
+.vil .b1 .flade,.vil .b1 .grund,.vil .b1 .v-navn,.vil .b1 .v-aar{animation-delay:-8s}
+.vil .b2 .flade,.vil .b2 .grund,.vil .b2 .v-navn,.vil .b2 .v-aar{animation-delay:-4s}
+@keyframes husOn{0%,25%{fill:var(--c)}33%,100%{fill:var(--face)}}
+@keyframes grundOn{0%,25%{fill:var(--c);opacity:.34}33%,100%{fill:var(--line);opacity:1}}
+@keyframes husTekst{0%,25%{fill:var(--c)}33%,100%{fill:var(--ink-3)}}
+
+/* markøren: flytter ind i huset, og skifter farve til husets */
+.mover text{font-family:var(--mono);font-weight:700;font-size:22px;
+            fill:var(--on-accent);letter-spacing:.1em}
+.mover{animation:flyt 12s var(--ease) infinite}
+.mover rect{animation:flytFarve 12s var(--ease) infinite}
+@keyframes flyt{
+  0%      {transform:translate(150px,136px);opacity:0}
+  5%,25%  {transform:translate(150px,136px);opacity:1}
+  33%,58% {transform:translate(360px,112px);opacity:1}
+  66%,92% {transform:translate(570px,88px); opacity:1}
+  97%,100%{transform:translate(570px,88px); opacity:0}
+}
+@keyframes flytFarve{
+  0%,25%  {fill:var(--c-hum)}
+  33%,58% {fill:var(--c-ias)}
+  66%,100%{fill:var(--c-its)}
+}
+.t-anim-cap{margin-top:14px;font-family:var(--mono);font-weight:700;font-size:19px;
+            letter-spacing:.3em;text-transform:uppercase;color:var(--ink-3)}
+
+/* ── kort på række ───────────────────────────────────────────────────────── */
+.num{font-family:var(--mono);font-weight:700;font-size:17px;color:var(--accent);
+     letter-spacing:.1em;flex:none}
+.cards{flex:0 0 auto;margin:auto 0;display:flex;gap:var(--gap);align-items:stretch}
+.card{padding:32px 34px 38px;background:var(--surface);border:1px solid var(--line);border-radius:16px;
+      border-top:3px solid var(--accent);transform:translateY(14px)}
+.card.on{transform:none}
+.card h3{margin-top:16px;font-family:var(--display);font-weight:800;font-size:44px;
+         line-height:1.02;text-transform:uppercase}
+.card p{margin-top:16px;font-size:23px;line-height:1.5;color:var(--ink-2)}
+
+/* ── hvem der står og taler ──────────────────────────────────────────────── */
+/* teksten bliver stående i dækkets venstremargen; portrættet lægger sig i
+   hjørnet, så dette slide stadig flugter med alle de andre */
+.me-head{display:flex;align-items:center;gap:56px}
+.me-head > div{min-width:0}
+.me-face{width:196px;height:196px;flex:none;margin-left:auto;border-radius:50%;
+         object-fit:cover;background:var(--surface);border:3px solid var(--accent)}
+.me{display:grid;grid-template-columns:780px 1fr;gap:60px;align-items:center;min-height:0}
+.me-cols{display:flex;flex-direction:column;gap:30px}
+.me-block{padding-top:18px;border-top:1px solid var(--line);transform:translateY(10px)}
+.me-block:first-child{padding-top:0;border-top:0}
+.me-block.on{transform:none}
+.me-lab{font-family:var(--mono);font-weight:700;font-size:16px;letter-spacing:.26em;
+        text-transform:uppercase;color:var(--accent)}
+.me-block ul{margin:12px 0 0;padding:0;list-style:none;
+             display:flex;flex-direction:column;gap:9px}
+.me-block li{position:relative;padding-left:26px;font-size:24px;line-height:1.38;
+             color:var(--ink-2)}
+.me-block li::before{content:"";position:absolute;left:0;top:11px;width:11px;height:2px;
+                     background:var(--accent)}
+
+/* fire evighedsmaskiner. De peger ikke på et trin, men på en person, så de
+   kører hele tiden i stedet for kun på .on */
+.me-anim{justify-self:center}
+.nerd{width:698px;height:550px}
+.nerd .n-cap{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:.24em;
+             text-transform:uppercase;fill:var(--ink-3)}
+
+/* uret: sekundviseren fejer, som et mekanisk værk gør */
+.nerd .w-case{fill:none;stroke:var(--ink-2);stroke-width:3}
+.nerd .w-face{fill:var(--surface)}
+.nerd .w-mark{stroke:var(--ink-3);stroke-width:2}
+.nerd .w-mark.big{stroke:var(--ink);stroke-width:4}
+.nerd .w-hand{stroke:var(--ink);stroke-width:5;stroke-linecap:round;
+              transform-box:view-box;transform-origin:150px 112px}
+.nerd .w-sec{stroke:var(--accent);stroke-width:2.5;animation:tick 6s linear infinite}
+.nerd .w-min{animation:tick 360s linear infinite}
+.nerd .w-hour{stroke-width:6;animation:tick 2160s linear infinite}
+.nerd .w-pin{fill:var(--accent)}
+@keyframes tick{to{transform:rotate(360deg)}}
+
+/* tastaturet: tolv taster, trykket ned i forskudt rækkefølge */
+.nerd .kb{fill:var(--surface);stroke:var(--ink-2);stroke-width:3}
+.nerd .key rect{fill:var(--surface-2)}
+.nerd .key .cap{fill:var(--surface)}
+.nerd .key{transform-box:view-box;transform-origin:center;
+           animation:press 4s var(--ease) var(--d,0s) infinite}
+@keyframes press{0%,88%,100%{transform:translateY(0)}
+                 91%{transform:translateY(3px)}94%{transform:translateY(0)}}
+.nerd .key.pressed rect{fill:var(--accent)}
+
+/* LEGO: fire klodser falder ned og lander */
+.nerd .plate{fill:var(--ink-3)}
+.nerd .brick rect{fill:var(--accent)}
+.nerd .brick .stud{fill:var(--accent);opacity:.65}
+.nerd .b1 rect{opacity:.82}.nerd .b2 rect{opacity:.64}.nerd .b3 rect{opacity:.46}
+.nerd .brick{transform-box:view-box}
+.nerd .b3{animation:settle 7.5s var(--ease) infinite}
+@keyframes settle{0%,8%{transform:translateY(0)}
+                  24%,40%{transform:translateY(-15px)}
+                  47%,100%{transform:translateY(0)}}
+
+/* serveren: lys der blinker i hver sin takt */
+.nerd .rack{fill:var(--surface);stroke:var(--ink-2);stroke-width:3}
+.nerd .unit rect{fill:var(--surface-2)}
+.nerd .vent{stroke:var(--hairline);stroke-width:2;stroke-linecap:round}
+.nerd .led{fill:var(--accent);animation:blink 2.3s steps(1,end) var(--d,0s) infinite}
+.nerd .led.alt{animation-duration:3.1s}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.18}}
+
+/* ── taltavler ───────────────────────────────────────────────────────────── */
+.facts{flex:0 0 auto;margin:auto 0;display:flex;gap:var(--gap);align-items:flex-start}
+.fact{padding-top:26px;border-top:4px solid var(--accent);transform:translateY(14px)}
+.fact.on{transform:none}
+.fact b{display:block;font-family:var(--mono);font-weight:700;font-size:104px;
+        line-height:.86;letter-spacing:-.02em;color:var(--accent)}
+.fact p{margin-top:22px;font-size:24px;line-height:1.4;color:var(--ink-2)}
+
+/* ── todelt: trin til venstre, diagram til højre ─────────────────────────── */
+.split{display:grid;grid-template-columns:560px 1fr;gap:60px;align-items:center}
+.col-steps ol.tight{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:22px}
+.trow{display:grid;grid-template-columns:34px 1fr;gap:16px;padding-bottom:22px;
+      border-bottom:1px solid var(--line);transform:translateY(8px)}
+.trow:last-child{border-bottom:0;padding-bottom:0}
+.trow.on{transform:none}
+.trow .num{padding-top:6px;font-size:16px}
+.trow h3{font-family:var(--display);font-weight:800;font-size:31px;line-height:1.04;
+         text-transform:uppercase}
+.trow p{margin-top:8px;font-size:19px;line-height:1.45;color:var(--ink-2)}
+.scene-box svg{width:100%;height:auto;max-height:540px}
+
+/* ── organisationsdiagrammerne ───────────────────────────────────────────── */
+.org .fac rect{fill:var(--surface);stroke:var(--line);stroke-width:2}
+.org .fl{font-family:var(--display);font-weight:800;font-size:30px;fill:var(--ink-2);
+         text-transform:uppercase}
+.org .hub rect{fill:var(--surface);stroke:var(--ink-2);stroke-width:2}
+.org .hub .hl{font-family:var(--display);font-weight:800;font-size:38px;fill:var(--ink);
+              text-transform:uppercase}
+.org .hub .hs2{font-family:var(--mono);font-weight:500;font-size:17px;fill:var(--ink-3)}
+.org .hub.ghost rect{stroke:var(--ink-3);stroke-dasharray:8 7;fill:none}
+.org .hub.cdul rect{fill:var(--accent);stroke:var(--accent)}
+.org .hub.cdul .hl{fill:var(--on-accent)}
+.org .fan{fill:none;stroke:var(--hairline);stroke-width:2;
+          stroke-dasharray:900;stroke-dashoffset:900}
+.slide.is-active .org .fan{animation:fanDraw .85s var(--ease) var(--d,0s) forwards}
+@keyframes fanDraw{to{stroke-dashoffset:0}}
+/* epoke 1 har stiplede linjer, fordi koblingen var løs. De toner ind i stedet */
+.org .fan.dash{stroke-dasharray:6 6;stroke-dashoffset:0;opacity:0}
+.slide.is-active .org .fan.dash{animation:fanFade .55s var(--ease) var(--d,0s) forwards}
+@keyframes fanFade{to{opacity:1}}
+.org .spine{fill:none;stroke:var(--ink-2);stroke-width:2}
+.org .chip rect{fill:var(--surface-2);stroke:none}
+.org .chip text{font-family:var(--mono);font-weight:700;font-size:18px;fill:var(--ink-2);
+                letter-spacing:.06em}
+.org .chip.me rect{fill:var(--accent)}
+.org .chip.me text{fill:var(--on-accent)}
+.org .mepill rect{fill:var(--accent)}
+.org .mepill text{font-family:var(--mono);font-weight:700;font-size:19px;fill:var(--on-accent);
+                  letter-spacing:.08em}
+.org .tick{fill:none;stroke:var(--accent);stroke-width:2}
+.org .cap{font-family:var(--mono);font-weight:700;font-size:19px;fill:var(--ink-3);
+          letter-spacing:.18em;text-transform:uppercase}
+
+.org .its-box rect{fill:var(--surface);stroke:var(--accent);stroke-width:2}
+.org .itl{font-family:var(--display);font-weight:800;font-size:32px;fill:var(--accent);
+          text-transform:uppercase}
+.org .unit rect{fill:var(--surface-2)}
+.org .unit text{font-family:var(--mono);font-weight:500;font-size:16px;fill:var(--ink-2)}
+.org .unit.cdul rect{fill:var(--accent)}
+.org .unit.cdul text{fill:var(--on-accent);font-weight:700}
+.org .unit .big{font-family:var(--display);font-weight:800;font-size:34px;
+                letter-spacing:.02em;text-transform:uppercase}
+.org .cut rect{fill:none;stroke:var(--hairline);stroke-width:2;stroke-dasharray:8 7}
+.org .cut text{font-family:var(--display);font-weight:800;font-size:28px;fill:var(--ink-3);
+               text-transform:uppercase}
+.org .cutline{fill:none;stroke:var(--hairline);stroke-width:2}
+.org .cutline{opacity:0}
+.slide.is-active .org .cutline{animation:fanFade .4s var(--ease) .75s forwards}
+.org .snip{fill:none;stroke:var(--neg);stroke-width:3;stroke-linecap:round;
+           opacity:0;transform-box:fill-box;transform-origin:center}
+.slide.is-active .org .snip{animation:snipIn .45s var(--ease) 1.05s forwards}
+@keyframes snipIn{0%{opacity:0;transform:scale(.3)}
+                  65%{opacity:1;transform:scale(1.25)}100%{opacity:1;transform:scale(1)}}
+
+/* ── tidslinje ───────────────────────────────────────────────────────────── */
+.scene{position:absolute;inset:0;margin:0}
+.scene > *{position:absolute}
+.axis{height:2px;background:var(--line);transform:translateY(-50%) scaleX(0);
+      transform-origin:left center}
+.slide.is-active .axis{animation:axisIn .7s var(--ease) forwards}
+@keyframes axisIn{to{transform:translateY(-50%) scaleX(1)}}
+.tknot{width:24px;height:24px;border-radius:50%;background:var(--line);
+       transform:translate(-50%,-50%) scale(.5)}
+.tknot.on{background:var(--accent);transform:translate(-50%,-50%) scale(1)}
+.tname{transform:translate(-50%,-100%);text-align:center;font-family:var(--display);
+       font-weight:800;font-size:44px;line-height:1;text-transform:uppercase;color:var(--accent)}
+.ttime{transform:translateX(-50%);font-family:var(--mono);font-weight:700;font-size:21px;
+       color:var(--ink-3)}
+/* kun knuden vi står på pulserer — bevægelsen peger på det jeg taler om nu */
+.tknot.on.now::after{content:"";position:absolute;inset:0;border-radius:50%;
+  background:var(--accent);animation:halo 3.6s var(--ease) infinite}
+@keyframes halo{0%{transform:scale(1);opacity:.22}70%,100%{transform:scale(3);opacity:0}}
+
+/* ── tre spalter: samme rolle, tre slags opgaver ─────────────────────────── */
+.shift{display:flex;align-items:stretch;justify-content:space-between;gap:0;margin:auto 0;
+       flex:0 0 auto}
+.scol{padding:30px 32px 34px;background:var(--surface);border:1px solid var(--line);border-radius:16px;
+      border-top:4px solid var(--accent);transform:translateY(14px)}
+.scol.on{transform:none}
+.s-era{font-family:var(--mono);font-weight:700;font-size:19px;letter-spacing:.16em;
+       color:var(--accent)}
+.s-home{margin-top:4px;font-family:var(--mono);font-weight:500;font-size:17px;color:var(--ink-3)}
+.scol h3{margin-top:18px;min-height:92px;font-family:var(--display);font-weight:800;
+         font-size:46px;line-height:1;text-transform:uppercase}
+.s-ex{margin-top:22px;padding-top:20px;border-top:1px solid var(--line);
+      font-size:22px;line-height:1.5;color:var(--ink-2)}
+.s-ex b{display:block;margin-bottom:8px;font-family:var(--mono);font-weight:700;font-size:15px;
+        letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+.sarrow{align-self:center;width:var(--gap);text-align:center;font-family:var(--sans);
+        font-size:40px;color:var(--ink-3);transform:translateX(-16px)}
+.sarrow.on{transform:none}
+.sarrow.now,.farrow.now{animation:handoff 2s var(--ease) infinite}
+@keyframes handoff{0%,68%,100%{transform:translateX(0)}82%{transform:translateX(10px)}}
+
+/* ── regnskabet ──────────────────────────────────────────────────────────── */
+.ledger{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-content:start}
+.lcol{padding-top:18px;border-top:4px solid var(--line);display:flex;flex-direction:column;gap:26px}
+.lcol.minus{border-top-color:var(--neg)}
+.lcol.plus{border-top-color:var(--pos)}
+.lhead{font-family:var(--mono);font-weight:700;font-size:19px;letter-spacing:.3em;
+       text-transform:uppercase;color:var(--ink-3)}
+.lcol.minus .lhead{color:var(--neg)}
+.lcol.plus  .lhead{color:var(--pos)}
+.lrow{transform:translateX(-10px)}
+.lrow.on{transform:none}
+.lrow h3{font-family:var(--display);font-weight:800;font-size:38px;line-height:1.04;
+         text-transform:uppercase}
+.lrow p{margin-top:8px;font-size:22px;line-height:1.48;color:var(--ink-2)}
+
+/* ── opgavelandskabet ────────────────────────────────────────────────────── */
+.landscape{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:30px 30px}
+.pile{padding:26px 28px 28px;background:var(--surface);border:1px solid var(--line);border-radius:16px;
+      border-left:4px solid var(--accent);transform:translateY(12px);
+      display:flex;flex-direction:column}
+.pile.on{transform:none}
+.pile-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.pile h3{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.02;
+         text-transform:uppercase}
+.pile-n{font-family:var(--mono);font-weight:700;font-size:34px;line-height:.9;color:var(--accent)}
+.dots{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px}
+.dots i{width:14px;height:14px;border-radius:4px;background:var(--accent);
+        opacity:0;transform:scale(.3);
+        transition:opacity .28s var(--ease),transform .28s var(--ease);
+        transition-delay:calc(var(--i) * 38ms)}
+.pile.on .dots i{opacity:.32;transform:none}
+.pile p{margin-top:14px;font-size:19px;line-height:1.42;color:var(--ink-2)}
+/* forklaring på belastningsmåleren, vist én gang lige før opgavekortene */
+.lfoot{margin-top:26px;display:flex;align-items:center;gap:26px;
+       font-family:var(--mono);font-weight:500;font-size:18px;color:var(--ink-3)}
+.lfoot span{display:inline-flex;align-items:center;gap:9px}
+
+/* ── temaslides: pointer øverst, opgavekort nedenunder ───────────────────── */
+.tasks{display:grid;grid-template-rows:auto 1fr;gap:34px;min-height:0}
+.tpoints{display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
+.tpoint{padding-left:20px;border-left:3px solid var(--accent);transform:translateY(8px)}
+.tpoint.on{transform:none}
+.tpoint h3{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.04;
+           text-transform:uppercase}
+.tpoint p{margin-top:6px;font-size:19px;line-height:1.42;color:var(--ink-2)}
+.tgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;align-content:center}
+/* få kort skal ikke klumpe sig øverst i et tomt felt: de får luft i stedet */
+.tgrid.roomy{gap:26px}
+.tgrid.roomy .tcard{padding:28px 30px 24px}
+.tgrid.roomy .tcard h3{font-size:26px;line-height:1.26}
+.tgrid.roomy .tw{margin-top:14px;font-size:17px}
+.tgrid.roomy .tf{padding-top:26px;font-size:17px}
+/* få, tunge opgaver får plads i stedet for at klumpe sig i et hjørne */
+.tgrid.wide{align-content:center;gap:40px}
+.tgrid.wide .tcard{padding:34px 38px 30px}
+.tgrid.wide .tcard h3{font-size:34px;line-height:1.2}
+.tgrid.wide .tw{margin-top:16px;font-size:18px}
+.tgrid.wide .tf{padding-top:34px;font-size:18px}
+.tcard{padding:20px 22px 18px;background:var(--surface);border:1px solid var(--line);border-radius:13px;
+       border-top:3px solid var(--accent);display:flex;flex-direction:column;
+       transform:translateY(10px)}
+.tcard.on{transform:none}
+.tcard h3{font-size:22px;line-height:1.28;font-weight:600}
+.tw{margin-top:10px;font-family:var(--mono);font-weight:700;font-size:15px;
+    letter-spacing:.04em;color:var(--accent)}
+.tf{margin-top:auto;padding-top:16px;display:flex;align-items:center;justify-content:space-between;
+    gap:12px;font-family:var(--mono);font-weight:500;font-size:15px;color:var(--ink-3)}
+.load{display:inline-flex;gap:4px;flex:none}
+.load i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink-3)}
+.load i.f{background:var(--accent);border-color:var(--accent)}
+
+/* ── micros under produktion ─────────────────────────────────────────────── */
+.micros{display:flex;align-items:stretch;justify-content:space-between;margin:auto 0;flex:0 0 auto}
+.mcol{padding:26px 28px 30px;background:var(--surface);border:1px solid var(--line);border-radius:16px;
+      border-top:3px solid var(--accent);transform:translateY(12px)}
+.mcol.on{transform:none}
+.m-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.m-head h3{font-family:var(--display);font-weight:800;font-size:46px;line-height:1;
+           text-transform:uppercase}
+.m-head b{font-family:var(--mono);font-weight:700;font-size:32px;color:var(--accent)}
+.m-note{margin-top:10px;padding-bottom:18px;border-bottom:1px solid var(--line);
+        font-size:18px;line-height:1.4;color:var(--ink-3)}
+.mcol ul{margin-top:18px;padding:0;list-style:none;display:flex;flex-direction:column;gap:15px}
+/* titlerne løber ind ovenfra og ned, så man ser spalten fylde sig */
+.mcol ul li{position:relative;padding-left:23px;font-size:21px;line-height:1.3;
+            opacity:0;transform:translateX(-10px);
+            transition:opacity .3s var(--ease),transform .3s var(--ease);
+            transition-delay:calc(var(--i) * 75ms)}
+.mcol.on ul li{opacity:1;transform:none}
+.mcol ul li::before{content:"";position:absolute;left:0;top:9px;width:9px;height:9px;
+                    border-radius:3px;background:var(--accent)}
+
+/* ── en rigtig tråd ──────────────────────────────────────────────────────── */
+.convo{display:grid;grid-template-columns:1000px 1fr;gap:56px;min-height:0}
+.thread{display:flex;flex-direction:column;justify-content:center;gap:9px;padding-right:8px}
+.msg{max-width:88%;padding:10px 16px 12px;border-radius:14px;background:var(--surface);
+     border:1px solid var(--line);transform:translateY(8px)}
+.msg.on{transform:none}
+.msg.mig{align-self:flex-end;background:var(--accent);border-color:var(--accent)}
+.m-meta{font-family:var(--mono);font-weight:700;font-size:13px;letter-spacing:.14em;
+        text-transform:uppercase;color:var(--ink-3)}
+.msg.mig .m-meta{color:var(--on-accent-2)}
+.m-body{margin-top:5px;font-size:16px;line-height:1.36;color:var(--ink)}
+.m-body + .m-body{margin-top:9px}
+.msg.mig .m-body{color:var(--on-accent)}
+.t-note{margin-bottom:4px;font-family:var(--mono);font-weight:500;font-size:15px;
+        color:var(--ink-3)}
+
+/* citat af en tidligere besked, som Teams viser det */
+.m-quote{margin-bottom:8px;padding:7px 11px;border-left:3px solid var(--on-accent-edge);
+         background:var(--on-accent-veil);border-radius:0 8px 8px 0}
+.msg.dem .m-quote{border-left-color:var(--line);background:var(--quote)}
+.mq-meta{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.1em;
+         color:var(--on-accent-2)}
+.msg.dem .mq-meta{color:var(--ink-3)}
+.m-quote p + p{margin-top:3px;font-size:14px;line-height:1.34;color:var(--on-accent-2)}
+.msg.dem .m-quote p + p{color:var(--ink-2)}
+
+/* linkkort: gengiver at der lå en forhåndsvisning i beskeden */
+.m-link{margin-top:9px;padding:8px 11px;border-radius:8px;
+        background:var(--on-accent-veil);border:1px solid var(--on-accent-edge)}
+.msg.dem .m-link{background:var(--quote);border-color:var(--line)}
+.ml-t{font-size:14px;line-height:1.3;font-weight:600;color:var(--on-accent)}
+.ml-d{margin-top:3px;font-family:var(--mono);font-weight:500;font-size:12px;
+      color:var(--on-accent-2)}
+.msg.dem .ml-t{color:var(--ink)}
+.msg.dem .ml-d{color:var(--ink-3)}
+.m-links{margin:8px 0 0;padding-left:19px;display:flex;flex-direction:column;gap:3px}
+.m-links li{font-size:15px;line-height:1.32;color:var(--on-accent);text-decoration:underline}
+.msg.dem .m-links li{color:var(--ink)}
+
+.tnotes{display:flex;flex-direction:column;justify-content:center;gap:20px}
+.tnote{padding-left:20px;border-left:3px solid var(--accent);transform:translateY(8px)}
+.tnote.on{transform:none}
+.tnote .num{font-size:15px}
+.tnote h3{margin-top:5px;font-family:var(--display);font-weight:800;font-size:26px;
+          line-height:1.04;text-transform:uppercase}
+.tnote p{margin-top:6px;font-size:17px;line-height:1.38;color:var(--ink-2)}
+
+/* ── systemprompten ──────────────────────────────────────────────────────── */
+.pdoc-wrap{display:grid;grid-template-columns:600px 1fr;gap:56px;min-height:0}
+.pdoc{padding:24px 28px 26px;background:var(--surface);border:1px solid var(--line);border-radius:14px;
+      display:flex;flex-direction:column;min-height:0}
+.pd-head{font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:.2em;
+         text-transform:uppercase;color:var(--accent);
+         padding-bottom:13px;border-bottom:1px solid var(--line)}
+.pd-list{margin:12px 0 0;padding:0;list-style:none;
+         display:flex;flex-direction:column;gap:0}
+.pd-list li{font-family:var(--mono);font-weight:500;font-size:15px;
+            line-height:1.38;color:var(--ink-2)}
+.pd-list li::before{content:"# ";color:var(--ink-3)}
+.pquotes{display:flex;flex-direction:column;justify-content:center;gap:22px}
+.pq{transform:translateY(8px)}
+.pq.on{transform:none}
+.pq blockquote{margin:0;padding-left:20px;border-left:3px solid var(--accent);
+               font-family:var(--display);font-weight:800;font-size:32px;line-height:1.04;
+               text-transform:uppercase}
+.pq blockquote span{display:block;margin-top:5px;font-family:var(--mono);font-weight:500;
+                    font-size:16px;letter-spacing:0;text-transform:none;color:var(--ink-3)}
+.pq > p{margin-top:9px;padding-left:23px;font-size:18px;line-height:1.42;color:var(--ink-2)}
+
+/* ── afleveringen ────────────────────────────────────────────────────────── */
+.offer{display:flex;align-items:stretch;justify-content:space-between;margin:auto 0;flex:0 0 auto}
+.ocard{padding:32px 36px 36px;background:var(--surface);border:1px solid var(--line);border-radius:18px;
+       border-top:4px solid var(--accent);transform:translateY(14px)}
+.ocard.on{transform:none}
+.o-tag{font-family:var(--mono);font-weight:700;font-size:16px;letter-spacing:.24em;
+       text-transform:uppercase;color:var(--accent)}
+.ocard h3{margin-top:16px;font-family:var(--display);font-weight:800;font-size:52px;
+          line-height:1;text-transform:uppercase}
+.o-what{margin-top:20px;font-size:23px;line-height:1.48;color:var(--ink-2)}
+.o-see{margin-top:22px;padding-top:20px;border-top:1px solid var(--line);
+       font-size:21px;line-height:1.45}
+.o-see b{display:block;margin-bottom:8px;font-family:var(--mono);font-weight:700;font-size:15px;
+         letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+.ofoot{flex:none;margin-top:28px;font-family:var(--mono);font-weight:500;font-size:21px;
+       color:var(--ink-3)}
+
+/* ── indeksoversigten ────────────────────────────────────────────────────── */
+#index{position:absolute;inset:0;z-index:30;background:var(--paper);padding:96px 130px 110px;
+       display:flex;flex-direction:column;
+       opacity:0;visibility:hidden;transform:translateY(-14px);
+       transition:opacity .26s var(--ease),visibility .26s,transform .3s var(--ease)}
+#index.open{opacity:1;visibility:visible;transform:none}
+.ix-head{font-family:var(--display);font-weight:800;font-size:72px;line-height:1;
+         text-transform:uppercase}
+.ix-grid{flex:1 1 auto;margin-top:38px;display:grid;grid-template-columns:repeat(3,1fr);
+         grid-auto-flow:column;grid-template-rows:repeat(9,auto);gap:4px 44px;align-content:start}
+.ix-row{position:relative;display:grid;grid-template-columns:44px 1fr auto;align-items:baseline;gap:14px;
+        padding:11px 12px;border:0;border-radius:9px;background:transparent;cursor:pointer;
+        text-align:left;font-family:inherit;color:inherit}
+.ix-row:hover{background:var(--hover)}
+.ix-row b{font-family:var(--mono);font-weight:700;font-size:16px;color:var(--accent)}
+/* den korte rute: en prik ved de slides der bærer fortællingen */
+.ix-row.core::before{content:"";position:absolute;left:-1px;top:19px;
+                     width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.ix-t{font-family:var(--display);font-weight:800;font-size:27px;line-height:1.06;
+      text-transform:uppercase}
+.ix-p{font-family:var(--mono);font-weight:500;font-size:14px;color:var(--ink-3);
+      white-space:nowrap}
+.ix-hint{flex:none;font-family:var(--mono);font-weight:500;font-size:17px;line-height:1.6;
+         color:var(--ink-3)}
+.ix-hint b{font-weight:700;color:var(--ink)}
+
+/* ── servicetjekket ──────────────────────────────────────────────────────── */
+.flow{display:flex;align-items:stretch;justify-content:space-between;margin:auto 0;flex:0 0 auto}
+.fbox{padding:28px 30px 32px;background:var(--surface);border:1px solid var(--line);border-radius:16px;
+      border-top:3px solid var(--accent);transform:translateY(12px)}
+.fbox.on{transform:none}
+.fbox h3{margin-top:14px;min-height:82px;font-family:var(--display);font-weight:800;
+         font-size:40px;line-height:1.02;text-transform:uppercase}
+.fbox p{margin-top:14px;font-size:21px;line-height:1.48;color:var(--ink-2)}
+.farrow{align-self:center;width:var(--gap);text-align:center;font-size:36px;color:var(--ink-3);
+        transform:translateX(-16px)}
+.farrow.on{transform:none}
+/* når hele rækken står: en puls der løber processen igennem, fordi den kører nu */
+.slide.done .fbox{animation:seq 5s linear infinite}
+@keyframes seq{0%{border-top-color:var(--accent)}
+               8%,22%{border-top-color:var(--ink)}
+               30%,100%{border-top-color:var(--accent)}}
+.slide.done .flow article:nth-of-type(2){animation-delay:1.25s}
+.slide.done .flow article:nth-of-type(3){animation-delay:2.5s}
+.slide.done .flow article:nth-of-type(4){animation-delay:3.75s}
+
+/* ── opsamlingen: tæt, ensartet, til at skimme ───────────────────────────── */
+.sum{display:flex;flex-direction:column;gap:24px;min-height:0}
+/* gitteret strækker sig, så opsamlingen fylder lærredet ud i stedet for at
+   svæve i midten. Begge rækker er lige høje */
+.sum-grid{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);
+          grid-auto-rows:1fr;gap:22px}
+.sblock{padding:18px 22px 20px;background:var(--surface);border:1px solid var(--line);
+        border-radius:13px;border-top:3px solid var(--accent);transform:translateY(10px);
+        display:flex;flex-direction:column}
+.sblock.on{transform:none}
+.s-lab{font-family:var(--mono);font-weight:700;font-size:14px;letter-spacing:.16em;
+       text-transform:uppercase;color:var(--accent)}
+.sblock h3{margin-top:6px;font-family:var(--display);font-weight:800;font-size:29px;
+           line-height:1.04;text-transform:uppercase}
+.s-sub{margin-top:8px;font-size:16px;line-height:1.38;color:var(--ink-2)}
+
+/* modellen fylder den plads der er tilovers, og teksten står i bunden,
+   så de otte blokke flugter på tværs af rækken */
+.s-art{flex:1 1 auto;min-height:0;display:flex;align-items:center;
+       justify-content:center;padding-bottom:14px}
+.sa{width:100%;height:100%;max-height:108px}
+.sa-face{fill:var(--surface);stroke:var(--line);stroke-width:2}
+.sa-box{fill:none;stroke:var(--accent);stroke-width:2}
+.sa-dim{fill:var(--hairline)}
+.sa-acc{fill:var(--accent)}
+.sa-on{fill:var(--on-accent)}
+.sa-dot{fill:var(--accent)}
+.sa-hair{fill:none;stroke:var(--hairline);stroke-width:2}
+.sa-head{fill:var(--hairline)}
+.sa-cut{fill:none;stroke:var(--neg);stroke-width:3;stroke-linecap:round}
+.sa-split{fill:none;stroke:var(--line);stroke-width:2;stroke-dasharray:4 6}
+.sa-ring{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:7 6;opacity:.55}
+.sa-ring-o{fill:none;stroke:var(--accent);stroke-width:2.5}
+.sa-tail{fill:var(--surface);stroke:var(--line);stroke-width:2}
+.sa-tag{font-family:var(--mono);font-weight:700;font-size:13px;fill:var(--ink-3)}
+.sum-end{flex:none;padding-top:18px;border-top:1px solid var(--line);
+         font-family:var(--display);font-weight:800;font-size:38px;line-height:1.06;
+         text-transform:uppercase;transform:translateY(8px)}
+.sum-end.on{transform:none}
+
+/* ── slutbilledet ────────────────────────────────────────────────────────── */
+.close{display:flex;flex-direction:column;justify-content:center;gap:34px;position:relative}
+.crow{display:grid;grid-template-columns:640px 1fr;gap:56px;align-items:baseline;
+      padding-bottom:30px;border-bottom:1px solid var(--line);transform:translateY(10px)}
+.crow:last-of-type{border-bottom:0}
+.crow.on{transform:none}
+.crow h3{font-family:var(--display);font-weight:800;font-size:46px;line-height:1.02;
+         text-transform:uppercase}
+.crow p{font-size:23px;line-height:1.5;color:var(--ink-2)}
+.cq{position:absolute;right:0;bottom:-24px;font-family:var(--display);font-weight:800;
+    font-size:120px;line-height:1;text-transform:uppercase;color:var(--accent)}
+
+/* ── vedvarende chrome ───────────────────────────────────────────────────── */
+#meta{position:absolute;z-index:10;top:52px;right:130px;display:flex;align-items:baseline;
+      gap:26px;font-family:var(--mono);font-weight:500;font-size:19px;color:var(--ink-3)}
+#meta #clock{font-weight:700;color:var(--ink)}
+/* halv skive: fyldt til venstre, tom til højre. Dæmpet indtil man peger på den */
+#bTheme{width:17px;height:17px;padding:0;border:2px solid var(--ink-3);border-radius:50%;
+        background:transparent;position:relative;overflow:hidden;cursor:pointer;
+        opacity:.45;transition:opacity .2s;align-self:center}
+#bTheme::after{content:"";position:absolute;left:0;top:0;bottom:0;width:50%;
+               background:var(--ink-3)}
+#bTheme:hover{opacity:1}
+#progress{position:fixed;left:0;bottom:0;height:3px;background:var(--accent);width:0;
+          transition:width .35s var(--ease);z-index:50}
+#chrome{position:fixed;left:0;right:0;bottom:16px;display:flex;justify-content:center;gap:9px;
+        opacity:0;transition:opacity .25s;z-index:50}
+#viewport:hover #chrome{opacity:1}
+#chrome button{font-family:var(--mono);font-size:12px;color:#c8cad6;cursor:pointer;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+  border-radius:6px;padding:7px 13px}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition-duration:.001s!important}
+  /* en indikator der forsvinder er en fejl: haloen bliver en stående ring */
+  .tknot.on.now::after{opacity:.22;transform:scale(2.4)}
+  .axis{transform:translateY(-50%) scaleX(1)}
+  .org .fan{stroke-dashoffset:0}
+  .org .fan.dash,.org .cutline,.org .snip{opacity:1}
+  .pile.on .dots i{opacity:.32;transform:none}
+  .mcol.on ul li{opacity:1;transform:none}
+  .sarrow.on,.farrow.on{transform:none}
+  /* nørderierne fryser på et hvilende billede i stedet for at forsvinde */
+  .nerd .brick{transform:none;opacity:1}
+  .nerd .led{opacity:1}
+  .nerd .key{transform:none}
+  .slide.is-active{transform:none}
+  /* forsiden fryser på det sidste hus, med CDUL flyttet ind */
+  .mover{transform:translate(570px,88px);opacity:1}
+  .mover rect{fill:var(--c-its)}
+  .b2 .flade{fill:var(--c-its)}
+  .b2 .v-navn,.b2 .v-aar{fill:var(--c-its)}
+}

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tre huse, én rolle — CDUL-rejsen</title>
+<!-- selvhostede fonte: intet hentes fra nettet, dækket kører offline -->
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/deck.css">
+</head>
+<body>
+<div id="viewport"><div id="stage">
+  <div id="meta"><span id="phase"></span><span id="clock"></span><span id="count"></span><button id="bTheme" type="button"
+    aria-label="Skift mellem lyst og mørkt tema" title="Lys eller mørk (D)"></button></div>
+  <div id="deck"></div>
+  <div id="index"></div>
+</div></div>
+
+<div id="chrome">
+  <button id="bPrev" type="button">← tilbage</button>
+  <button id="bNext" type="button">frem →</button>
+  <button id="bAll" type="button">vis alt (V)</button>
+  <button id="bIndex" type="button">indhold (O)</button>
+  <button id="bFull" type="button">fuldskærm (F)</button>
+</div>
+<div id="progress"></div>
+
+<script src="js/data.js"></script>
+<script src="js/engine.js"></script>
+</body>
+</html>

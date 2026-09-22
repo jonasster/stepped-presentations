@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Generative AI, explained</title>
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/deck.css">
+</head>
+<body>
+
+<div id="viewport">
+  <div id="stage">
+    <div id="scenes"></div>
+
+    <nav id="menu" hidden>
+      <p class="menu-head">Contents</p>
+      <ol id="menu-list"></ol>
+      <p class="menu-foot">Esc to close &middot; &larr; &rarr; to move &middot; M for this menu</p>
+    </nav>
+  </div>
+</div>
+
+<div id="chrome">
+  <button id="bMenu" type="button">contents (M)</button>
+  <button id="bPrev" type="button">&larr; back</button>
+  <button id="bNext" type="button">next &rarr;</button>
+</div>
+<div id="rail"><span id="rail-fill"></span></div>
+<p id="counter"><b id="counter-now">0</b><i>/</i><span id="counter-all">0</span></p>
+
+<div id="toosmall">
+  <p>This deck is drawn on a fixed 1920&times;1080 canvas.<br>Open it on a larger screen.</p>
+</div>
+
+<script src="js/render.js"></script>
+<script src="js/render-figures.js"></script>
+<script src="js/data-01-foundations.js"></script>
+<script src="js/data-02-inside.js"></script>
+<script src="js/data-03-history.js"></script>
+<script src="js/data-04-around.js"></script>
+<script src="js/data-05-limits.js"></script>
+<script src="js/engine.js"></script>
+</body>
+</html>

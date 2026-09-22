@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "deck",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8731",
+        "--directory",
+        "decks/generative-ai-explained"
+      ],
+      "port": 8731
+    },
+    {
+      "name": "cdul",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8742",
+        "--directory",
+        "decks/cdul-rejsen"
+      ],
+      "port": 8742
+    }
+  ]
+}
