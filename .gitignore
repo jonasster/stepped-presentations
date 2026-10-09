@@ -10,3 +10,6 @@ shots*.png
 
 # Themes derived from someone's brand stay on their machine
 themes/local/
+
+# Design explorations, kept local
+prototypes/

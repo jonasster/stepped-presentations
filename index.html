@@ -6,357 +6,386 @@
 <title>Stepped presentations: an agent skill</title>
 <meta name="description" content="An agent skill for building interactive HTML presentations you click through. Works with Claude Code, Codex, Cursor, OpenCode, Pi, Antigravity and any agent that reads SKILL.md. One file, no build, no network.">
 <link rel="stylesheet" href="assets/fonts/fonts.css">
+<!-- The page is built from the same token files the decks use. Exactly one theme and one
+     motion style is enabled at a time; the switcher at the bottom swaps them. -->
+<link rel="stylesheet" href="assets/themes/house.css" data-theme="house">
+<link rel="stylesheet" href="assets/themes/editorial.css" data-theme="editorial" disabled>
+<link rel="stylesheet" href="assets/themes/swiss.css" data-theme="swiss" disabled>
+<link rel="stylesheet" href="assets/themes/midnight.css" data-theme="midnight" disabled>
+<link rel="stylesheet" href="assets/motion/calm.css" data-motion="calm">
+<link rel="stylesheet" href="assets/motion/crisp.css" data-motion="crisp" disabled>
+<link rel="stylesheet" href="assets/motion/playful.css" data-motion="playful" disabled>
+<link rel="stylesheet" href="assets/motion/drawn.css" data-motion="drawn" disabled>
 <style>
-/* The landing page wears the House theme, so it looks like what the skill makes. */
-:root{
-  --paper:#eff1f5; --paper-2:#e6e9f0; --ink:#211a52; --ink-2:#4f5466; --ink-3:#62626b;
-  --line:#d9dde6; --accent:#4a2fe0; --outside:#12121a;
-  --c1:#1e1b4b; --c2:#a14f09; --c3:#0b6d82; --c4:#0b7a54;
-  --display:"Barlow Condensed","Arial Narrow",sans-serif;
-  --sans:"Geist","Segoe UI",system-ui,sans-serif;
-  --mono:"Geist Mono",ui-monospace,Consolas,monospace;
-  --ease:cubic-bezier(.33,0,.2,1);
-  --wrap:1200px; --gutter:clamp(16px,4vw,40px);
-}
 *,*::before,*::after{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:72px}
-body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--sans);
-     -webkit-font-smoothing:antialiased}
+html{scroll-padding-top:64px}
+body{margin:0;background:var(--outside);color:var(--ink);font:17px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
 p,h1,h2,h3,h4,ul,ol,figure,blockquote,pre{margin:0}
 a{color:inherit}
-img,iframe{display:block;max-width:100%}
-code,kbd,pre{font-family:var(--mono)}
-.wrap{max-width:var(--wrap);margin:0 auto;padding:0 var(--gutter)}
-.display{font-family:var(--display);font-weight:800;text-transform:uppercase;
-         letter-spacing:.005em;line-height:.95}
-.meta{font-family:var(--mono);font-weight:500;text-transform:uppercase;letter-spacing:.2em;
-      font-size:12px;color:var(--ink-3)}
+iframe{display:block;max-width:100%}
+.display{font-family:var(--display);font-weight:var(--display-weight);text-transform:var(--display-case);
+         letter-spacing:var(--display-tracking);line-height:var(--display-leading)}
+.meta{font-family:var(--mono);font-weight:500;text-transform:var(--label-case);letter-spacing:var(--label-tracking);color:var(--ink-3)}
 .kicker{display:flex;align-items:center;gap:12px}
-.kicker::before{content:"";width:11px;height:11px;border-radius:50%;background:var(--accent);flex:none}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.kicker::before{content:"";width:.8em;height:.8em;border-radius:var(--marker-radius);background:var(--accent);flex:none}
+kbd{display:inline-block;min-width:1.7em;padding:.1em .45em;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
+    background:var(--paper);font:500 .8em/1.4 var(--mono);text-align:center;color:var(--ink)}
+
+/* every reveal on the page, on the stage and below it, reads the motion tokens */
+.rv{opacity:0;clip-path:inset(0 var(--wipe-from) 0 0);
+    transform:translateY(calc(var(--rise) + 28px * var(--travel))) scale(var(--from-scale));
+    transition:opacity var(--t-fade) var(--ease),transform var(--t-reveal) var(--ease),clip-path var(--t-reveal) var(--ease)}
+.rv.on{opacity:1;clip-path:inset(0 0 0 0);transform:none;transition-delay:calc(var(--stagger) * var(--i,0))}
 
 /* ---- top bar ---- */
-.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 94%,transparent);
-     border-bottom:1px solid var(--line)}
-.top .wrap{display:flex;align-items:center;gap:28px;height:60px}
-.mark{font:700 14px/1 var(--mono);letter-spacing:.06em;text-decoration:none;white-space:nowrap}
-.mark b{color:var(--accent)}
-.top nav{display:flex;gap:24px;margin-left:auto;font-size:15px}
-.top nav a{text-decoration:none;color:var(--ink-2)}
-.top nav a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
-@media (max-width:760px){.top nav a:not(.gh){display:none}}
+.top{position:fixed;left:0;right:0;top:0;z-index:40;height:52px;display:flex;align-items:center;gap:24px;
+     padding:0 clamp(16px,3vw,32px);color:#e9e8e4;font-size:14px;pointer-events:none}
+.top>*{pointer-events:auto}
+.mark{font:700 13px/1 var(--mono);letter-spacing:.06em;text-decoration:none}
+.top nav{display:flex;gap:20px;margin-left:auto}
+.top nav a{text-decoration:none;opacity:.8}
+.top nav a:hover{opacity:1;text-decoration:underline;text-underline-offset:4px}
+.top.light{color:var(--ink);background:color-mix(in srgb,var(--paper) 92%,transparent);border-bottom:var(--rule) solid var(--line)}
 
-/* ---- hero ---- */
-.hero{padding:clamp(48px,8vw,104px) 0 clamp(40px,6vw,72px)}
-.hero .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(32px,5vw,64px);
-            align-items:center}
-.hero h1{margin-top:22px;font-size:clamp(56px,8.4vw,112px)}
-.hero h1 em{font-style:normal;color:var(--accent)}
-.hero .lede{margin-top:24px;font-size:clamp(18px,1.6vw,20px);color:var(--ink-2);max-width:34em}
-.actions{margin-top:32px;display:flex;flex-wrap:wrap;gap:12px}
-.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 20px;border-radius:6px;
-     font:600 15px/1 var(--sans);text-decoration:none;border:1px solid var(--ink);cursor:pointer}
-.btn.solid{background:var(--ink);color:var(--paper)}
-.btn.ghost{background:transparent;color:var(--ink)}
-.btn:hover{text-decoration:underline;text-underline-offset:4px}
-@media (max-width:900px){.hero .wrap{grid-template-columns:1fr}}
+/* ---- the runway: one viewport of scroll per beat; the stage reads the scroll position ---- */
+#runway{position:relative}
+#pin{position:sticky;top:0;height:100vh;overflow:hidden;background:var(--outside)}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;background:var(--paper);color:var(--ink);
+       overflow:hidden;transform-origin:center;transition:background .5s,color .5s}
+.beat{position:absolute;inset:0;visibility:hidden}
+.beat.live{visibility:visible}
+#bar{position:absolute;left:0;bottom:0;height:6px;background:var(--accent);transition:width var(--t-fade) var(--ease)}
+#count{position:absolute;right:64px;bottom:44px;font-size:18px}
+#skip{position:absolute;left:64px;bottom:40px;font-size:18px;text-decoration:none;color:var(--ink-3)}
+#skip:hover{color:var(--ink);text-decoration:underline}
+/* on a phone the stage is small, so the beat's caption also appears under it */
+#caption{display:none}
+@media (orientation:portrait){
+  #caption{display:block;position:absolute;left:20px;right:20px;bottom:84px;font-size:16px;line-height:1.5;color:#c9c8c3}
+}
 
-/* ---- a live deck in a frame ---- */
-.screen{position:relative;border-radius:8px;overflow:hidden;background:var(--outside);
-        border:1px solid var(--line)}
-.screen iframe{width:100%;aspect-ratio:16/9;border:0}
-.screen .hint{position:absolute;left:12px;bottom:12px;padding:6px 10px;border-radius:4px;
-              background:rgba(18,18,26,.82);color:#e7e7ee;font:12px/1.2 var(--mono);
-              pointer-events:none;transition:opacity .3s}
-.screen.driven .hint{opacity:0}
-.keys{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--ink-3)}
-kbd{display:inline-block;min-width:24px;padding:2px 6px;border:1px solid var(--line);border-bottom-width:2px;
-    border-radius:4px;background:#fff;font-size:12px;text-align:center;color:var(--ink)}
+/* beat 0: title */
+.title{position:absolute;left:140px;top:230px}
+.title .meta{font-size:22px}
+.title h1{margin-top:30px;font-size:200px}
+.title h1 em{font-style:normal;color:var(--accent)}
+.title .lede{margin-top:36px;font-size:30px;line-height:1.45;color:var(--ink-2);max-width:32ch}
+.press{position:absolute;left:140px;bottom:120px;display:flex;gap:18px;align-items:center;font-size:21px;color:var(--ink-3)}
+.press kbd{font-size:22px}
 
-/* ---- sections ---- */
-section.band{padding:clamp(56px,8vw,96px) 0;border-top:1px solid var(--line)}
-.head{max-width:44em}
+/* beat 1: one file */
+.facts{position:absolute;left:140px;top:250px;padding:0;list-style:none}
+.facts li{font-family:var(--display);font-weight:var(--display-weight);text-transform:var(--display-case);
+          letter-spacing:var(--display-tracking);font-size:104px;line-height:1.08}
+.facts li.soft{color:var(--muted)}
+.file{position:absolute;left:1200px;top:230px;width:440px;height:580px;background:var(--paper);border:3px solid var(--ink);
+      border-radius:var(--radius);clip-path:polygon(0 0,82% 0,100% 13%,100% 100%,0 100%)}
+.file i{position:absolute;left:44px;right:70px;height:10px;border-radius:5px;background:var(--line)}
+.file b{position:absolute;left:44px;bottom:118px;font-family:var(--display);font-weight:var(--display-weight);
+        text-transform:var(--display-case);font-size:64px;line-height:1}
+.file span{position:absolute;left:44px;bottom:66px;font-size:20px}
+
+/* beats 2-7: you ask, it builds, in order */
+.bhead{position:absolute;left:120px;top:84px}
+.bhead .meta{font-size:18px}
+.bhead h2{margin-top:16px;font-size:76px}
+.term{position:absolute;left:120px;top:270px;width:690px;height:690px;border-radius:12px;background:#14151a;color:#e8e7e3;
+      border:1px solid #2a2c36;padding:22px 26px;font:19px/1.6 var(--mono);overflow:hidden}
+.term .tb{display:flex;justify-content:space-between;margin:-6px 0 16px;font-size:14px;color:#8b8a86;letter-spacing:.08em}
+.ln{display:none;margin:0 0 14px;white-space:pre-wrap}
+.ln.on{display:block}
+.ln.you{color:#ffb347}
+.ln.you::before{content:"› ";color:#8b8a86}
+.ln.tool{color:#9a9994}
+.ln.tool::before{content:"● ";color:#8fdc9d}
+.ln.typing::after{content:"▍";color:#ffb347}
+.mini{position:absolute;left:860px;top:270px;width:940px;height:529px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+#ms{position:absolute;left:0;top:0;width:1920px;height:1080px;transform:scale(.4896);transform-origin:0 0;background:#fff;
+    transition:background .6s var(--ease)}
+.phases{position:absolute;left:860px;top:830px;width:940px;display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.ph{padding:14px 16px;border:2px solid var(--line);border-radius:var(--radius);font-size:15px;color:var(--ink-3);
+    transition:background .3s,color .3s,border-color .3s}
+.ph b{display:block;font-family:var(--display);font-weight:var(--display-weight);font-size:34px;line-height:1;color:inherit}
+.ph.done{color:var(--ink)}
+.ph.now{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+/* the mini deck, pass by pass: grey until the theme arrives in pass four */
+.mbox{position:absolute;top:480px;width:330px;height:190px;transform:translateX(-50%);border:4px dashed #b8bcc8;opacity:0;
+      transition:all .6s var(--ease)}
+.mbox .lbl{position:absolute;left:0;right:0;top:-120px;text-align:center;font:500 22px/1 var(--mono);letter-spacing:.2em;color:#999;opacity:0;transition:opacity .4s}
+.mbox h3{margin-top:34px;text-align:center;font:700 46px/1 var(--sans);color:#333;opacity:0;transition:opacity .4s}
+.mbox p{margin:14px 26px 0;text-align:center;font-size:22px;line-height:1.35;color:#666;opacity:0;transition:opacity .4s}
+.mrail{position:absolute;left:200px;right:200px;top:420px;height:4px;background:#d8dbe3;opacity:0;transition:opacity .4s}
+.mdot{position:absolute;top:420px;width:48px;height:48px;border-radius:50%;background:#c8ccd6;transform:translate(-50%,-50%) scale(0);
+      transition:transform .5s var(--ease),background .5s}
+.mttl{position:absolute;left:150px;top:110px;font:800 100px/1 var(--display);text-transform:uppercase;color:#c8ccd6;opacity:0;transition:all .5s}
+.mwalk{position:absolute;top:480px;width:330px;height:190px;transform:translateX(-50%);background:#e2e4ea;opacity:0;transition:left .45s var(--ease),opacity .3s}
+#ms.p1 .mbox,#ms.p2 .mbox,#ms.p3 .mbox,#ms.p4 .mbox,#ms.p5 .mbox{opacity:1}
+#ms.p1 .mwalk{opacity:1}
+#ms.p2 .mrail,#ms.p3 .mrail,#ms.p4 .mrail,#ms.p5 .mrail,#ms.p2 .mttl,#ms.p3 .mttl,#ms.p4 .mttl,#ms.p5 .mttl{opacity:1}
+#ms.p2 .mdot,#ms.p3 .mdot,#ms.p4 .mdot,#ms.p5 .mdot{transform:translate(-50%,-50%) scale(1)}
+#ms.p3 .mbox *,#ms.p4 .mbox *,#ms.p5 .mbox *{opacity:1}
+#ms.p3 .mttl{color:#222}
+#ms.p4,#ms.p5{background:var(--paper)}
+#ms.p4 .mttl,#ms.p5 .mttl{color:var(--ink);font-family:var(--display);font-weight:var(--display-weight);
+                          text-transform:var(--display-case);letter-spacing:var(--display-tracking)}
+#ms.p4 .mbox,#ms.p5 .mbox{border:0;border-radius:var(--radius);background:color-mix(in srgb,var(--c) var(--fill-mix),var(--paper))}
+#ms.p4 .mbox h3,#ms.p5 .mbox h3{color:var(--c);font-family:var(--display);font-weight:var(--display-weight);
+                                text-transform:var(--display-case);letter-spacing:var(--display-tracking)}
+#ms.p4 .mbox p,#ms.p5 .mbox p{color:var(--ink-2)}
+#ms.p4 .mbox .lbl,#ms.p5 .mbox .lbl{color:var(--c)}
+#ms.p4 .mdot,#ms.p5 .mdot{background:var(--c);border-radius:var(--marker-radius)}
+#ms.p5 .mdot.now::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--c);
+                        animation:halo var(--ambient-period) var(--ease-out) infinite}
+@keyframes halo{0%{transform:scale(1);opacity:var(--ambient-opacity)}70%,100%{transform:scale(var(--ambient-scale));opacity:0}}
+
+/* beat 8: themes, which drive the whole page */
+.themes{position:absolute;left:120px;right:120px;top:330px;display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+.th{height:400px;padding:34px;display:flex;flex-direction:column;justify-content:flex-end;text-align:left;cursor:pointer;
+    border:3px solid transparent;font:inherit;color:inherit;transition:border-color .3s,transform .3s}
+.th b{font-size:58px;line-height:1}
+.th span{margin-top:12px;font:500 16px/1.4 "Geist Mono",monospace;letter-spacing:.08em}
+.th[aria-pressed="true"]{border-color:var(--accent)}
+.th[aria-pressed="true"]::before{content:"wearing it";align-self:flex-start;margin-bottom:auto;font:600 14px/1 "Geist Mono",monospace;
+    letter-spacing:.14em;text-transform:uppercase;padding:8px 10px;border-radius:4px;background:var(--accent);color:var(--paper)}
+.motions{position:absolute;left:120px;top:780px;display:flex;gap:14px;align-items:center}
+.motions .meta{font-size:18px;margin-right:10px}
+.mo{font:600 24px/1 var(--sans);padding:16px 24px;border:2px solid var(--line);border-radius:var(--radius);background:transparent;
+    color:var(--ink);cursor:pointer}
+.mo[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.thnote{position:absolute;left:120px;top:880px;font-size:24px;color:var(--ink-2)}
+
+/* beat 9: what it made */
+.exs{position:absolute;left:120px;right:120px;top:280px;display:grid;grid-template-columns:repeat(4,1fr);gap:26px}
+.exs iframe{width:100%;aspect-ratio:16/9;border:2px solid var(--line);border-radius:var(--radius);background:#000;pointer-events:none}
+.exs p{margin-top:12px;font-size:16px}
+.exs b{display:block;margin-top:4px;font:700 24px/1.2 var(--sans);color:var(--ink)}
+.exnote{position:absolute;left:120px;top:640px;font-size:26px;color:var(--ink-2);max-width:56ch}
+
+/* beat 10: install */
+.inst{position:absolute;left:120px;right:120px;top:240px}
+.inst h2{font-size:150px}
+.inst .cmd{margin-top:46px;padding:32px 40px;border-radius:var(--radius);background:var(--ink);color:var(--paper);font:500 40px/1.3 var(--mono)}
+.inst p.w{margin-top:34px;font-size:26px;color:var(--ink-2);max-width:62ch}
+.inst p.down{margin-top:40px;font-size:22px;color:var(--ink-3)}
+
+/* ---- the readable page below the stage ---- */
+.page{background:var(--paper);color:var(--ink);transition:background .5s,color .5s}
+.wrap{max-width:1200px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
+section.band{padding:clamp(56px,8vw,96px) 0;border-top:var(--rule) solid var(--line)}
+.page .band:first-child{border-top:0}
+.head{max-width:46em}
+.head .meta{font-size:12px}
 .head h2{margin-top:16px;font-size:clamp(40px,5.6vw,68px)}
 .head p{margin-top:16px;color:var(--ink-2);font-size:18px}
-
-/* what it is for */
-.uses{margin-top:48px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line)}
-.uses li{list-style:none;padding:24px 24px 28px 0;border-bottom:1px solid var(--line)}
-.uses li:not(:nth-child(3n+1)){padding-left:24px;border-left:1px solid var(--line)}
-.uses h3{font:700 19px/1.3 var(--sans);letter-spacing:-.01em}
-.uses p{margin-top:8px;font-size:15.5px;color:var(--ink-2)}
-.uses{padding:0}
-@media (max-width:900px){.uses{grid-template-columns:1fr 1fr}
-  .uses li:not(:nth-child(3n+1)){padding-left:0;border-left:0}
-  .uses li:nth-child(2n){padding-left:24px;border-left:1px solid var(--line)}}
-@media (max-width:560px){.uses{grid-template-columns:1fr}
-  .uses li:nth-child(2n){padding-left:0;border-left:0}}
-
-/* showcase */
 .shows{margin-top:48px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:56px 40px}
+.screen{position:relative;border-radius:var(--radius);overflow:hidden;background:#000;border:var(--rule) solid var(--line)}
+.screen iframe{width:100%;aspect-ratio:16/9;border:0}
+.screen .hint{position:absolute;left:12px;bottom:12px;padding:6px 10px;border-radius:4px;background:rgba(18,18,26,.82);color:#e7e7ee;
+              font:12px/1.2 var(--mono);pointer-events:none;transition:opacity .3s}
+.screen.driven .hint{opacity:0}
 .show figcaption{margin-top:18px}
-.show h3{font-size:34px;font-family:var(--display);font-weight:800;text-transform:uppercase;line-height:1}
+.show h3{font-size:34px}
 .chips{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px}
-.chip{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:6px 8px;
-      border:1px solid var(--line);border-radius:4px;color:var(--ink-2);background:#fff}
+.chip{font-size:11px;padding:6px 8px;border:1px solid var(--line);border-radius:4px}
 .show p{margin-top:12px;color:var(--ink-2);font-size:15.5px}
-.show blockquote{margin-top:14px;padding-left:14px;border-left:2px solid var(--accent);
-                 font-size:15px;color:var(--ink);font-style:normal}
-.show blockquote::before{content:"You ask: ";font:600 11px/1 var(--mono);letter-spacing:.14em;
-                         text-transform:uppercase;color:var(--ink-3)}
+.show blockquote{margin-top:14px;padding-left:14px;border-left:2px solid var(--accent);font-size:15px}
 .links{margin-top:14px;display:flex;gap:18px;font-size:14px}
 .links a{color:var(--accent);text-underline-offset:3px}
 @media (max-width:860px){.shows{grid-template-columns:1fr}}
-
-/* themes */
-.styles{margin-top:40px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px}
-.styles dl{margin:0}
-.styles dt{font:700 17px/1.3 var(--sans);margin-top:18px}
-.styles dt:first-of-type{margin-top:8px}
-.styles dd{margin:4px 0 0;color:var(--ink-2);font-size:15.5px}
-.styles h3{font-size:30px}
-.gallery{margin-top:40px}
-.gallery iframe{aspect-ratio:16/10}
-@media (max-width:760px){.styles{grid-template-columns:1fr}}
-
-/* how to use */
-.steps{margin-top:48px;display:grid;gap:0;counter-reset:s;padding:0}
-.steps>li{list-style:none;display:grid;grid-template-columns:120px minmax(0,1fr);gap:24px;
-          padding:32px 0;border-top:1px solid var(--line);counter-increment:s}
-.steps>li::before{content:counter(s,decimal-leading-zero);font:800 64px/1 var(--display);color:var(--accent)}
+.steps{margin-top:40px;padding:0;list-style:none;counter-reset:s}
+.steps>li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:24px;padding:32px 0;border-top:var(--rule) solid var(--line);counter-increment:s}
+.steps>li::before{content:counter(s,decimal-leading-zero);font-family:var(--display);font-weight:var(--display-weight);font-size:60px;line-height:1;color:var(--accent)}
+.steps>li>div{min-width:0}
 .steps h3{font:700 24px/1.25 var(--sans);letter-spacing:-.01em}
 .steps p{margin-top:10px;color:var(--ink-2);max-width:42em}
-.steps ul{margin-top:12px;padding-left:18px;color:var(--ink-2)}
-.steps ul li{margin-top:6px}
-.cmd{margin-top:16px;display:flex;align-items:stretch;border:1px solid var(--ink);border-radius:6px;
-     overflow:hidden;background:#fff;max-width:100%}
-.cmd pre{flex:1;min-width:0;overflow-x:auto;padding:14px 16px;font-size:14px;line-height:1.5}
-.cmd button{flex:none;border:0;border-left:1px solid var(--ink);background:var(--ink);color:var(--paper);
-            font:600 13px/1 var(--sans);padding:0 18px;cursor:pointer}
-.prompt{margin-top:14px;padding:16px 18px;background:#fff;border:1px solid var(--line);border-radius:6px;
-        font-size:16px;color:var(--ink)}
-.keytable{margin-top:14px;display:grid;grid-template-columns:auto 1fr;gap:10px 18px;align-items:center;
-          font-size:15.5px;color:var(--ink-2)}
-/* minmax(0,…) and min-width:0, or the one-line install command props the column open */
-.steps>li>div{min-width:0}
+.cmd2{margin-top:16px;display:flex;align-items:stretch;border:1px solid var(--ink);border-radius:var(--radius);overflow:hidden;background:var(--paper)}
+.cmd2 pre{flex:1;min-width:0;overflow-x:auto;padding:14px 16px;font:14px/1.5 var(--mono)}
+.cmd2 button{flex:none;border:0;background:var(--ink);color:var(--paper);font:600 13px/1 var(--sans);padding:0 18px;cursor:pointer}
+.where{margin-top:14px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 20px;font-size:15px;color:var(--ink-2);max-width:40em}
+.where code{font:14px var(--mono);color:var(--ink);overflow-wrap:anywhere}
+.keytable{margin-top:14px;display:grid;grid-template-columns:auto 1fr;gap:10px 18px;align-items:center;font-size:15.5px;color:var(--ink-2)}
+.prompt{margin-top:14px;padding:16px 18px;border:var(--rule) solid var(--line);border-radius:var(--radius);font-size:16px}
+.aside{font-size:15px}
+.aside a{color:var(--accent);text-underline-offset:3px}
 @media (max-width:640px){.steps>li{grid-template-columns:minmax(0,1fr);gap:12px}.steps>li::before{font-size:44px}}
-
-/* built in */
-.feats{margin-top:48px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px 28px;padding:0}
-.feats li{list-style:none;border-top:2px solid var(--ink);padding-top:14px}
+.feats{margin-top:48px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px 28px;padding:0;list-style:none}
+.feats li{border-top:2px solid var(--ink);padding-top:14px}
 .feats h3{font:700 17px/1.3 var(--sans)}
 .feats p{margin-top:8px;font-size:15px;color:var(--ink-2)}
 @media (max-width:900px){.feats{grid-template-columns:1fr 1fr}}
 @media (max-width:520px){.feats{grid-template-columns:1fr}}
-
-/* which agents, and where they look */
-.works{margin-top:28px;font-size:15px;line-height:1.7;color:var(--ink-3);max-width:34em}
-.works b{font-weight:600;color:var(--ink-2)}
-.works a{color:var(--accent);text-underline-offset:3px}
-.where{margin-top:14px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 20px;
-       font-size:15px;color:var(--ink-2);max-width:40em}
-.where code{font-size:14px;color:var(--ink);overflow-wrap:anywhere}
-.aside{font-size:15px}
-.aside a{color:var(--accent);text-underline-offset:3px}
-
-/* footer */
-footer{padding:48px 0 64px;border-top:1px solid var(--line);font-size:15px;color:var(--ink-3)}
+footer{padding:44px 0 120px;border-top:var(--rule) solid var(--line);font-size:15px;color:var(--ink-3)}
 footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-between}
+
+/* ---- the switcher ---- */
+#switch{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:50;display:flex;flex-wrap:wrap;gap:5px;align-items:center;
+        justify-content:center;padding:7px;border-radius:10px;background:#0b0b0f;color:#e7e6e1;font:13px/1 system-ui,sans-serif;
+        box-shadow:0 8px 28px rgba(0,0,0,.28);max-width:calc(100vw - 20px)}
+#switch span{font:600 10px/1 ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#8b8a86;padding:0 6px}
+#switch button{font:inherit;color:inherit;background:none;border:1px solid #2c2c33;border-radius:6px;padding:8px 10px;cursor:pointer}
+#switch button[aria-pressed="true"]{background:#e9e8e4;color:#111;border-color:#e9e8e4}
+/* on a phone: one row that scrolls sideways, so it never covers the page */
+@media (max-width:620px){
+  #switch{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;bottom:10px;padding:6px;gap:4px}
+  #switch span{padding:0 4px 0 6px}
+  #switch button{flex:none;padding:7px 8px;font-size:12px}
+  .top nav a:not(:last-child){display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.001s!important;animation:none!important}}
 </style>
 </head>
 <body>
+<header class="top" id="top">
+  <a class="mark" href="#">stepped/presentations</a>
+  <nav><a href="#examples">Examples</a><a href="#use">Install</a><a href="https://github.com/jonasster/stepped-presentations">GitHub</a></nav>
+</header>
 
-<header class="top"><div class="wrap">
-  <a class="mark" href="#">stepped<b>/</b>presentations</a>
-  <nav>
-    <a href="#examples">Examples</a>
-    <a href="#styles">Themes</a>
-    <a href="#use">How to use</a>
-    <a class="gh" href="https://github.com/jonasster/stepped-presentations">GitHub</a>
-  </nav>
-</div></header>
+<div id="runway"><div id="pin"><div id="stage">
 
-<main>
-<section class="hero"><div class="wrap">
-  <div>
-    <p class="meta kicker">An agent skill, for any coding agent</p>
-    <h1 class="display">Decks you <em>click</em> through</h1>
-    <p class="lede">Describe a talk to your coding agent and it builds it as one HTML file: a fixed stage where
-      every press reveals the next piece, and a quiet loop marks whatever you are talking
-      about. No build, no framework, no network. It runs from a double-click on a borrowed
-      laptop, ten minutes before you speak.</p>
-    <div class="actions">
-      <a class="btn solid" href="#use">Install the skill</a>
-      <a class="btn ghost" href="#examples">See what it makes</a>
+  <section class="beat" data-from="0" data-to="0">
+    <div class="title">
+      <p class="meta kicker rv" data-b="0">An agent skill · for any coding agent</p>
+      <h1 class="display rv" data-b="0" style="--i:1">Decks you<br><em>click</em> through</h1>
+      <p class="lede rv" data-b="0" style="--i:2">This page is one. Scroll, or press the arrow keys, and it builds the way your decks will.</p>
     </div>
-    <p class="works">Works with <b>Claude Code</b>, <b>Codex</b>, <b>Cursor</b>, <b>OpenCode</b>,
-      <b>Pi</b>, <b>Antigravity</b>, <b>Gemini CLI</b>, <b>GitHub Copilot</b> and any agent
-      that reads the open <a href="https://agentskills.io">Agent Skills</a> format.</p>
-  </div>
-  <div>
-    <div class="screen" data-deck="examples/roadmap/index.html" data-count="8" data-hero>
-      <iframe title="Example deck: a 2026 roadmap, playing" loading="eager"></iframe>
-      <span class="hint">Playing on its own. Click it, then use ← →</span>
+    <p class="press rv" data-b="0" style="--i:4"><kbd>→</kbd> or scroll · restyle it with the switcher below</p>
+  </section>
+
+  <section class="beat" data-from="1" data-to="1">
+    <ul class="facts">
+      <li class="rv" data-b="1">One file.</li>
+      <li class="rv" data-b="1" style="--i:1">No build.</li>
+      <li class="rv" data-b="1" style="--i:2">No network.</li>
+      <li class="rv soft" data-b="1" style="--i:3">Nothing left to</li>
+      <li class="rv soft" data-b="1" style="--i:4">fail to load.</li>
+    </ul>
+    <div class="file rv" data-b="1" style="--i:2">
+      <i style="top:96px"></i><i style="top:126px;right:150px"></i><i style="top:156px"></i><i style="top:186px;right:210px"></i>
+      <b>index.html</b><span class="meta">double-click to present</span>
     </div>
-    <p class="keys"><span><kbd>→</kbd> next</span><span><kbd>←</kbd> back</span>
-      <span><kbd>F</kbd> show all</span><span><kbd>P</kbd> presenter view</span></p>
-  </div>
-</div></section>
+  </section>
 
-<section class="band" id="for"><div class="wrap">
-  <div class="head">
-    <p class="meta kicker">What it is for</p>
-    <h2 class="display">When the picture does the explaining</h2>
-    <p>Slides are pages you flip. A stepped deck is one scene that builds while you talk, so
-      the room sees the thing you are describing, in the order you describe it.</p>
-  </div>
-  <ul class="uses">
-    <li><h3>Roadmaps and timelines</h3><p>Milestones that land one at a time, so the date arrives with its reason.</p></li>
-    <li><h3>Flows and architecture</h3><p>Boxes and routed wires, with a pulse that travels the connection you are on.</p></li>
-    <li><h3>Decisions</h3><p>Options against criteria, narrowed down in front of the people who have to agree.</p></li>
-    <li><h3>Stories and journeys</h3><p>A road wider than the screen, with a camera that follows you along it.</p></li>
-    <li><h3>Walkthroughs and portfolios</h3><p>Work laid out as a set, with detail panels for the pieces someone asks about.</p></li>
-    <li><h3>Teaching</h3><p>A concept built up in steps you can go back over, and print as a handout afterwards.</p></li>
-  </ul>
-</div></section>
+  <section class="beat" data-from="2" data-to="7">
+    <div class="bhead"><p class="meta kicker rv" data-b="2">How it works</p>
+      <h2 class="display rv" data-b="2" style="--i:1">You ask. It builds. In order.</h2></div>
+    <div class="term rv" data-b="2" style="--i:2"><div class="tb"><span>ANY CODING AGENT</span><span id="tclock">00:00</span></div><div id="log"></div></div>
+    <div class="mini rv" data-b="2" style="--i:3"><div id="ms">
+      <p class="mttl">2026 in four moves</p><div class="mrail"></div><div class="mwalk" style="left:360px"></div><div id="mscene"></div>
+    </div></div>
+    <div class="phases rv" data-b="2" style="--i:4" id="phases"></div>
+  </section>
 
+  <section class="beat" data-from="8" data-to="8">
+    <div class="bhead"><p class="meta kicker rv" data-b="8">Themes and motion</p>
+      <h2 class="display rv" data-b="8" style="--i:1">Pick a look. Pick a pace.</h2></div>
+    <div class="themes">
+      <button class="th rv" data-b="8" data-t="house" type="button" style="--i:2;background:#eff1f5;color:#211a52;border-radius:12px;outline:1px solid #d9dde6">
+        <b style="font:800 58px/1 'Barlow Condensed';text-transform:uppercase">House</b><span>CONDENSED CAPS · MONO DATA</span></button>
+      <button class="th rv" data-b="8" data-t="editorial" type="button" style="--i:3;background:#f6f1e7;color:#1f1a14;border-radius:2px;outline:1px solid #e4dccd">
+        <b style="font:600 58px/1 Fraunces">Editorial</b><span>SERIF · WARM PAPER</span></button>
+      <button class="th rv" data-b="8" data-t="swiss" type="button" style="--i:4;background:#fff;color:#111;border-radius:0;outline:2px solid #111">
+        <b style="font:800 58px/1 Archivo;letter-spacing:-.04em">Swiss</b><span style="color:#d0021b">BLACK · WHITE · RED</span></button>
+      <button class="th rv" data-b="8" data-t="midnight" type="button" style="--i:5;background:#0f1115;color:#f2efe9;border-radius:10px">
+        <b style="font:600 58px/1 Geist;letter-spacing:-.03em">Midnight</b><span style="color:#ffb347">A DARK STAGE</span></button>
+    </div>
+    <div class="motions rv" data-b="8" style="--i:6"><span class="meta">Motion</span>
+      <button class="mo" data-m="calm" type="button">Calm</button><button class="mo" data-m="crisp" type="button">Crisp</button>
+      <button class="mo" data-m="playful" type="button">Playful</button><button class="mo" data-m="drawn" type="button">Drawn</button></div>
+    <p class="thnote rv" data-b="8" style="--i:7">Click one. The whole page is built from the same tokens your decks will be, so it changes too.</p>
+  </section>
+
+  <section class="beat" data-from="9" data-to="9">
+    <div class="bhead"><p class="meta kicker rv" data-b="9">What it makes</p>
+      <h2 class="display rv" data-b="9" style="--i:1">Four decks it built</h2></div>
+    <div class="exs">
+      <div class="rv" data-b="9" style="--i:2"><iframe data-src="examples/roadmap/index.html#7" title="Roadmap example" tabindex="-1"></iframe><p class="meta">House · Calm</p><b>Roadmap</b></div>
+      <div class="rv" data-b="9" style="--i:3"><iframe data-src="examples/flow/index.html#8" title="Flow example" tabindex="-1"></iframe><p class="meta">Midnight · Drawn</p><b>Flow diagram</b></div>
+      <div class="rv" data-b="9" style="--i:4"><iframe data-src="examples/decision/index.html#7" title="Decision example" tabindex="-1"></iframe><p class="meta">Swiss · Crisp</p><b>Decision</b></div>
+      <div class="rv" data-b="9" style="--i:5"><iframe data-src="examples/journey/index.html#8" title="Journey example" tabindex="-1"></iframe><p class="meta">Editorial · Playful</p><b>Journey</b></div>
+    </div>
+    <p class="exnote rv" data-b="9" style="--i:6">A timeline, a flow with routed wires, a decision narrowed down in front of the room, and a story with a camera that follows. Each is one file you can open and read. They are all live further down the page.</p>
+  </section>
+
+  <section class="beat" data-from="10" data-to="10">
+    <div class="inst"><h2 class="display rv" data-b="10">Install it</h2>
+      <p class="cmd rv" data-b="10" style="--i:1">npx skills add jonasster/stepped-presentations</p>
+      <p class="w rv" data-b="10" style="--i:2">Claude Code, Codex, Cursor, OpenCode, Pi, Antigravity, or any agent that reads SKILL.md. Then ask it for something you will click through.</p>
+      <p class="down rv" data-b="10" style="--i:3">Keep scrolling for the examples, the details and the other ways to install.</p></div>
+  </section>
+
+  <a id="skip" class="meta" href="#examples">skip to the page ↓</a>
+  <p id="count" class="meta"></p>
+  <div id="bar"></div>
+</div><p id="caption"></p></div></div>
+
+<main class="page">
 <section class="band" id="examples"><div class="wrap">
   <div class="head">
-    <p class="meta kicker">Examples</p>
-    <h2 class="display">Four decks it built</h2>
-    <p>Each is a single file, live below. They play on their own; click one to drive it. Each
-      one also shows a theme and a motion style, and every file is readable source.</p>
+    <p class="meta kicker rv">Examples</p>
+    <h2 class="display rv" style="--i:1">Four decks, live</h2>
+    <p class="rv" style="--i:2">They play on their own; click one to drive it with the arrow keys. Each also shows a theme
+      and a motion style, and every file is readable source.</p>
   </div>
   <div class="shows">
-    <figure class="show">
-      <div class="screen" data-deck="examples/roadmap/index.html" data-count="8">
-        <iframe title="Example deck: roadmap timeline" loading="lazy"></iframe>
-        <span class="hint">Click to drive</span></div>
-      <figcaption>
-        <h3>Roadmap</h3>
-        <div class="chips"><span class="chip">House</span><span class="chip">Calm</span><span class="chip">Timeline</span></div>
-        <p>Six milestones on a year-long spine. Cards alternate sides so neighbours never share
-          a lane, and only the current marker breathes.</p>
+    <figure class="show rv">
+      <div class="screen" data-deck="examples/roadmap/index.html" data-count="8"><iframe title="Example deck: roadmap timeline" loading="lazy"></iframe><span class="hint">Click to drive</span></div>
+      <figcaption><h3 class="display">Roadmap</h3>
+        <div class="chips"><span class="chip meta">House</span><span class="chip meta">Calm</span><span class="chip meta">Timeline</span></div>
+        <p>Six milestones on a year-long spine. Cards alternate sides so neighbours never share a lane, and only the current marker breathes.</p>
         <blockquote>Our 2026 roadmap for the all-hands, six milestones, one at a time as I talk.</blockquote>
-        <p class="links"><a href="examples/roadmap/index.html">Open full screen</a>
-          <a href="https://github.com/jonasster/stepped-presentations/blob/main/examples/roadmap/index.html">Source</a></p>
-      </figcaption>
-    </figure>
-    <figure class="show">
-      <div class="screen" data-deck="examples/flow/index.html" data-count="9">
-        <iframe title="Example deck: animated flow diagram" loading="lazy"></iframe>
-        <span class="hint">Click to drive</span></div>
-      <figcaption>
-        <h3>Flow diagram</h3>
-        <div class="chips"><span class="chip">Midnight</span><span class="chip">Drawn</span><span class="chip">Flow</span></div>
-        <p>A data pipeline with two side branches. Wires are routed from explicit waypoints,
-          draw themselves on, and a pulse runs the one you are explaining.</p>
-        <blockquote>Explain our pipeline to non-technical people: ingest, clean, enrich, warehouse,
-          dashboard, plus quarantine and alerting.</blockquote>
-        <p class="links"><a href="examples/flow/index.html">Open full screen</a>
-          <a href="https://github.com/jonasster/stepped-presentations/blob/main/examples/flow/index.html">Source</a></p>
-      </figcaption>
-    </figure>
-    <figure class="show">
-      <div class="screen" data-deck="examples/decision/index.html" data-count="8">
-        <iframe title="Example deck: comparison and decision" loading="lazy"></iframe>
-        <span class="hint">Click to drive</span></div>
-      <figcaption>
-        <h3>Decision</h3>
-        <div class="chips"><span class="chip">Swiss</span><span class="chip">Crisp</span><span class="chip">Comparison</span></div>
-        <p>Four options against four bars, one row per step. Each option is struck through
-          exactly where it fails, and the last step names the one left.</p>
-        <blockquote>We need a decision on where booking should live. Four proposals, and the bars
-          finance agreed.</blockquote>
-        <p class="links"><a href="examples/decision/index.html">Open full screen</a>
-          <a href="https://github.com/jonasster/stepped-presentations/blob/main/examples/decision/index.html">Source</a></p>
-      </figcaption>
-    </figure>
-    <figure class="show">
-      <div class="screen" data-deck="examples/journey/index.html" data-count="9">
-        <iframe title="Example deck: story and journey" loading="lazy"></iframe>
-        <span class="hint">Click to drive</span></div>
-      <figcaption>
-        <h3>Journey</h3>
-        <div class="chips"><span class="chip">Editorial</span><span class="chip">Playful</span><span class="chip">Story</span></div>
-        <p>Seven stops on a road wider than the screen. The road draws to each stop, and the
-          camera moves only when the next card would be cut off.</p>
-        <blockquote>Walk the team through the life of one bug report, from the customer's email to
-          our reply.</blockquote>
-        <p class="links"><a href="examples/journey/index.html">Open full screen</a>
-          <a href="https://github.com/jonasster/stepped-presentations/blob/main/examples/journey/index.html">Source</a></p>
-      </figcaption>
-    </figure>
-  </div>
-</div></section>
-
-<section class="band" id="styles"><div class="wrap">
-  <div class="head">
-    <p class="meta kicker">Themes and motion</p>
-    <h2 class="display">Pick a look, pick a pace</h2>
-    <p>How a deck looks and how it moves are chosen separately, so any theme works with any
-      motion style. Or hand your agent a link, a brand PDF or a path into a repo, and it derives a
-      theme from that, fixing any colour too faint to read on a projector.</p>
-  </div>
-  <div class="styles">
-    <div><h3 class="display">Themes</h3><dl>
-      <dt>House</dt><dd>Condensed capitals, mono for anything that is data, cool paper.</dd>
-      <dt>Editorial</dt><dd>A serif display in sentence case, warm paper, one deep accent.</dd>
-      <dt>Swiss</dt><dd>White, black and one red. Square corners, strong rules.</dd>
-      <dt>Midnight</dt><dd>A dark stage with a warm accent, for rooms with the lights down.</dd>
-      <dt>From a reference</dt><dd>Matched to your site, brand guide or design tokens.</dd>
-    </dl></div>
-    <div><h3 class="display">Motion</h3><dl>
-      <dt>Calm</dt><dd>Soft fades and a small rise. Nothing competes with the speaker.</dd>
-      <dt>Crisp</dt><dd>Fast, clean wipes. No bounce, no travel.</dd>
-      <dt>Playful</dt><dd>Cards pop out of the marker they belong to and overshoot a little.</dd>
-      <dt>Drawn</dt><dd>Lines draw on, titles type in, the camera takes its time.</dd>
-    </dl></div>
-  </div>
-  <div class="screen gallery">
-    <iframe src="assets/gallery.html" title="Style gallery: every theme with every motion style" loading="lazy"></iframe>
+        <p class="links"><a href="examples/roadmap/index.html">Open full screen</a><a href="https://github.com/jonasster/stepped-presentations/blob/main/examples/roadmap/index.html">Source</a></p>
+      </figcaption></figure>
+    <figure class="show rv" style="--i:1">
+      <div class="screen" data-deck="examples/flow/index.html" data-count="9"><iframe title="Example deck: flow diagram" loading="lazy"></iframe><span class="hint">Click to drive</span></div>
+      <figcaption><h3 class="display">Flow diagram</h3>
+        <div class="chips"><span class="chip meta">Midnight</span><span class="chip meta">Drawn</span><span class="chip meta">Flow</span></div>
+        <p>A data pipeline with two side branches. Wires are routed from explicit waypoints, draw themselves on, and a pulse runs the one you are explaining.</p>
+        <blockquote>Explain our pipeline to non-technical people: ingest, clean, enrich, warehouse, dashboard, plus quarantine and alerting.</blockquote>
+        <p class="links"><a href="examples/flow/index.html">Open full screen</a><a href="https://github.com/jonasster/stepped-presentations/blob/main/examples/flow/index.html">Source</a></p>
+      </figcaption></figure>
+    <figure class="show rv">
+      <div class="screen" data-deck="examples/decision/index.html" data-count="8"><iframe title="Example deck: decision" loading="lazy"></iframe><span class="hint">Click to drive</span></div>
+      <figcaption><h3 class="display">Decision</h3>
+        <div class="chips"><span class="chip meta">Swiss</span><span class="chip meta">Crisp</span><span class="chip meta">Comparison</span></div>
+        <p>Four options against four bars, one row per step. Each option is struck through exactly where it fails, and the last step names the one left.</p>
+        <blockquote>We need a decision on where booking should live. Four proposals, and the bars finance agreed.</blockquote>
+        <p class="links"><a href="examples/decision/index.html">Open full screen</a><a href="https://github.com/jonasster/stepped-presentations/blob/main/examples/decision/index.html">Source</a></p>
+      </figcaption></figure>
+    <figure class="show rv" style="--i:1">
+      <div class="screen" data-deck="examples/journey/index.html" data-count="9"><iframe title="Example deck: journey" loading="lazy"></iframe><span class="hint">Click to drive</span></div>
+      <figcaption><h3 class="display">Journey</h3>
+        <div class="chips"><span class="chip meta">Editorial</span><span class="chip meta">Playful</span><span class="chip meta">Story</span></div>
+        <p>Seven stops on a road wider than the screen. The road draws to each stop, and the camera moves only when the next card would be cut off.</p>
+        <blockquote>Walk the team through the life of one bug report, from the customer's email to our reply.</blockquote>
+        <p class="links"><a href="examples/journey/index.html">Open full screen</a><a href="https://github.com/jonasster/stepped-presentations/blob/main/examples/journey/index.html">Source</a></p>
+      </figcaption></figure>
   </div>
 </div></section>
 
 <section class="band" id="use"><div class="wrap">
-  <div class="head">
-    <p class="meta kicker">How to use it</p>
-    <h2 class="display">Install, ask, present</h2>
-  </div>
+  <div class="head"><p class="meta kicker rv">How to use it</p><h2 class="display rv" style="--i:1">Install, ask, present</h2></div>
   <ol class="steps">
-    <li><div>
+    <li class="rv"><div>
       <h3>Install the skill</h3>
-      <p>One command finds the coding agents you have and puts the skill where each of them
-        looks. Your agent picks it up in its next session, and loads it whenever you ask for
-        something you will click through or present.</p>
-      <div class="cmd"><pre id="install">npx skills add jonasster/stepped-presentations</pre>
-        <button type="button" data-copy="install">Copy</button></div>
-      <p>Or clone it into your agent's skills folder yourself. It is the same folder for
-        every agent; only the place differs.</p>
-      <div class="where">
-        <span>Codex, Cursor, OpenCode, Pi</span><code>~/.agents/skills/</code>
-        <span>Claude Code</span><code>~/.claude/skills/</code>
-        <span>Antigravity</span><code>~/.gemini/config/skills/</code>
-      </div>
-      <div class="cmd"><pre id="clone">git clone https://github.com/jonasster/stepped-presentations ~/.agents/skills/stepped-presentations</pre>
-        <button type="button" data-copy="clone">Copy</button></div>
+      <p>One command finds the coding agents you have and puts the skill where each of them looks. Your agent picks it up in its
+        next session, and loads it whenever you ask for something you will click through or present.</p>
+      <div class="cmd2"><pre id="install">npx skills add jonasster/stepped-presentations</pre><button type="button" data-copy="install">Copy</button></div>
+      <p>Or clone it into your agent's skills folder yourself. It is the same folder for every agent; only the place differs.</p>
+      <div class="where"><span>Codex, Cursor, OpenCode, Pi</span><code>~/.agents/skills/</code><span>Claude Code</span><code>~/.claude/skills/</code>
+        <span>Antigravity</span><code>~/.gemini/config/skills/</code></div>
+      <div class="cmd2"><pre id="clone">git clone https://github.com/jonasster/stepped-presentations ~/.agents/skills/stepped-presentations</pre><button type="button" data-copy="clone">Copy</button></div>
       <p class="aside">Using a chat assistant that takes custom instructions instead of skills?
-        <a href="https://github.com/jonasster/stepped-presentations/blob/main/docs/copilot-agent-instructions.md">This condensed version</a>
-        fits in one instructions box.</p>
+        <a href="https://github.com/jonasster/stepped-presentations/blob/main/docs/copilot-agent-instructions.md">This condensed version</a> fits in one instructions box.</p>
     </div></li>
-    <li><div>
+    <li class="rv"><div>
       <h3>Ask for the deck</h3>
-      <p>Say what it is for, when you present, and what goes in it. If that is all there,
-        the agent builds the whole deck and lists the choices it made for you. If the content is
-        not settled yet, it asks one short round of questions, each with a default, then stops
-        at a few checkpoints so you can steer.</p>
-      <p class="prompt">“I present our 2026 roadmap at the all-hands next week. Six milestones,
-        appearing one at a time as I talk. It has to run off my laptop; the meeting room wifi is
-        terrible. Swiss theme, Crisp motion.”</p>
-      <p>It works on decks you already have, too: add a step, fix a connector that runs
-        through a label, embed screenshots, or make a deck self-contained before you email it.</p>
+      <p>Say what it is for, when you present, and what goes in it. If that is all there, the agent builds the whole deck and lists
+        the choices it made for you. If the content is not settled yet, it asks one short round of questions, each with a default,
+        then stops at a few checkpoints so you can steer.</p>
+      <p class="prompt">“I present our 2026 roadmap at the all-hands next week. Six milestones, appearing one at a time as I talk.
+        It has to run off my laptop; the meeting room wifi is terrible. Swiss theme, Crisp motion.”</p>
     </div></li>
-    <li><div>
+    <li class="rv"><div>
       <h3>Present it</h3>
       <p>Double-click the file. Everything you need is on the keyboard:</p>
       <div class="keytable">
@@ -367,72 +396,208 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
         <span><kbd>Shift</kbd> <kbd>P</kbd></span><span>a PDF with one page per step, or a handout with your notes</span>
       </div>
     </div></li>
-    <li><div>
+    <li class="rv"><div>
       <h3>Fine-tune without a prompt</h3>
-      <p>Nudging a colour, fixing a typo or trying another easing is not worth a conversation.
-        The studio opens a deck folder in Chrome or Edge, runs your deck beside an outline and
-        an inspector, and writes each change back into your source one value at a time.</p>
-      <div class="cmd"><pre id="studio">python -m http.server 5180 --directory studio</pre>
-        <button type="button" data-copy="studio">Copy</button></div>
+      <p>Nudging a colour, fixing a typo or trying another easing is not worth a conversation. The studio opens a deck folder in
+        Chrome or Edge, runs your deck beside an outline and an inspector, and writes each change back into your source one value at a time.</p>
+      <div class="cmd2"><pre id="studio">python -m http.server 5180 --directory studio</pre><button type="button" data-copy="studio">Copy</button></div>
     </div></li>
   </ol>
 </div></section>
 
 <section class="band" id="built-in"><div class="wrap">
-  <div class="head">
-    <p class="meta kicker">Built in</p>
-    <h2 class="display">What every deck gets</h2>
-  </div>
+  <div class="head"><p class="meta kicker rv">Built in</p><h2 class="display rv" style="--i:1">What every deck gets</h2></div>
   <ul class="feats">
-    <li><h3>One file, offline</h3><p>Fonts and images can be inlined, so the deck runs from a USB stick or an email attachment.</p></li>
-    <li><h3>Back is free</h3><p>The whole scene is derived from one step number, so ←, deep links and jumping around always land right.</p></li>
-    <li><h3>Presenter view</h3><p>Notes, the next step and a timer in a second window. Drive it from either one.</p></li>
-    <li><h3>PDF and handouts</h3><p>One page per step at full size, with transitions off so nothing prints halfway.</p></li>
-    <li><h3>Content as data</h3><p>What you say lives in arrays at the top. Adding a milestone is adding an entry.</p></li>
-    <li><h3>Motion that means something</h3><p>Only the current step moves, and every animation has a static version for reduced motion.</p></li>
-    <li><h3>Checked in a browser</h3><p>Where the agent has a browser, it opens the deck and measures it before calling a visual change done.</p></li>
-    <li><h3>Yours to edit</h3><p>Plain HTML, CSS and JavaScript. No framework to learn, nothing to install to change it.</p></li>
+    <li class="rv"><h3>One file, offline</h3><p>Fonts and images can be inlined, so the deck runs from a USB stick or an email attachment.</p></li>
+    <li class="rv" style="--i:1"><h3>Back is free</h3><p>The whole scene is derived from one step number, so ←, deep links and jumping around always land right.</p></li>
+    <li class="rv" style="--i:2"><h3>Presenter view</h3><p>Notes, the next step and a timer in a second window. Drive it from either one.</p></li>
+    <li class="rv" style="--i:3"><h3>PDF and handouts</h3><p>One page per step at full size, with transitions off so nothing prints halfway.</p></li>
+    <li class="rv"><h3>Content as data</h3><p>What you say lives in arrays at the top. Adding a milestone is adding an entry.</p></li>
+    <li class="rv" style="--i:1"><h3>Motion that means something</h3><p>Only the current step moves, and every animation has a static version for reduced motion.</p></li>
+    <li class="rv" style="--i:2"><h3>Checked in a browser</h3><p>Where the agent has a browser, it opens the deck and measures it before calling a visual change done.</p></li>
+    <li class="rv" style="--i:3"><h3>Yours to edit</h3><p>Plain HTML, CSS and JavaScript. No framework to learn, nothing to install to change it.</p></li>
   </ul>
 </div></section>
-</main>
 
 <footer><div class="wrap">
-  <span>Stepped presentations. MIT licence. Every example on this page was built with the skill.</span>
+  <span>Stepped presentations · MIT licence · this page and every example on it were built with the skill.</span>
   <a href="https://github.com/jonasster/stepped-presentations">github.com/jonasster/stepped-presentations</a>
 </div></footer>
+</main>
+
+<div id="switch" aria-label="Restyle the page"></div>
 
 <script>
-/* Each frame is a real deck. The page drives it through the deck's own message, the same
-   one its presenter view uses, so nothing in the decks is special for this page. */
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-document.querySelectorAll('.screen[data-deck]').forEach(box => {
-  const frame = box.querySelector('iframe'), count = +box.dataset.count;
-  let at = 0, timer = null, visible = false, driven = false;
-  frame.src = box.dataset.deck;
-  const go = i => frame.contentWindow && frame.contentWindow.postMessage({ deck:'show', at:i }, '*');
-  const dwell = i => i === 0 ? 2600 : i === count - 1 ? 3600 : 1700;
-  const tick = () => {
-    at = (at + 1) % count; go(at);
-    timer = setTimeout(tick, dwell(at));
+const STEPS = 11;
+const CAPTIONS = ["Decks you click through: this page is one.", "One file. No build. No network.",
+  "You ask for the deck.", "Pass 1: a skeleton that walks end to end.", "Pass 2: the real geometry.", "Pass 3: the real words.",
+  "Pass 4: the theme arrives.", "Pass 5: motion last, then a check in the browser.", "Pick a look and a pace. Try one: the page changes.",
+  "Four decks it built, live further down.", "Install it in whichever agent you use."];
+
+/* ── themes and motion: the page wears whatever is picked ─────────────────── */
+const THEMES = ["house", "editorial", "swiss", "midnight"], MOTIONS = ["calm", "crisp", "playful", "drawn"];
+const cap = s => s[0].toUpperCase() + s.slice(1);
+let theme = "house", motion = "calm";
+const sw = document.getElementById('switch');
+sw.innerHTML = '<span>Theme</span>' + THEMES.map(t => `<button type="button" data-t="${t}">${cap(t)}</button>`).join('') +
+               '<span>Motion</span>' + MOTIONS.map(m => `<button type="button" data-m="${m}">${cap(m)}</button>`).join('');
+function pick(t = theme, m = motion){
+  theme = t; motion = m;
+  document.querySelectorAll('link[data-theme]').forEach(l => l.disabled = l.dataset.theme !== theme);
+  document.querySelectorAll('link[data-motion]').forEach(l => l.disabled = l.dataset.motion !== motion);
+  document.querySelectorAll('[data-t]').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === theme));
+  document.querySelectorAll('[data-m]').forEach(b => b.setAttribute('aria-pressed', b.dataset.m === motion));
+  try { localStorage.setItem('sp-style', theme + '/' + motion); } catch {}
+  renderLog(true);
+  replay();
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-t],[data-m]'); if (!b) return;
+  pick(b.dataset.t || theme, b.dataset.m || motion);
+});
+
+/* ── the build beats: a scripted agent session and a mini deck, one pass per beat ─ */
+const ITEMS = [["JANUARY","Kickoff","Goals and three numbers"],["APRIL","Migration","Off the legacy CRM"],
+               ["JULY","Beta","500 invited customers"],["NOVEMBER","Launch","Both stores, press day"]];
+const ms = document.getElementById('ms'), mscene = document.getElementById('mscene');
+ITEMS.forEach(([l, n, d], i) => {
+  const x = 360 + i * 400;
+  mscene.insertAdjacentHTML('beforeend', `<div class="mdot" data-i="${i}" style="left:${x}px;--c:var(--c${i + 1})"></div>
+    <div class="mbox" style="left:${x}px;--c:var(--c${i + 1})"><span class="lbl">${l}</span><h3>${n}</h3><p>${d}</p></div>`);
+});
+document.getElementById('phases').innerHTML = ["Skeleton","Layout","Words","Style","Motion"]
+  .map((p, i) => `<div class="ph meta" data-p="${i + 1}"><b>${i + 1}</b>${p}</div>`).join('');
+const LOG = [
+  { b:2, who:"you",   t:"I present our 2026 roadmap at the all-hands next week. Four milestones, one at a time as I talk. Runs off my laptop." },
+  { b:2, who:"agent", t:() => `That covers the occasion, the spine and where it runs, so no questions. Building it with ${cap(theme)} and ${cap(motion)}.` },
+  { b:3, who:"tool",  t:"canvas 1920×1080 + step machine on placeholder boxes; → ← walk end to end" },
+  { b:4, who:"tool",  t:"geometry as data: a spine, four markers, a title slot" },
+  { b:5, who:"tool",  t:"the words, from one ITEMS array, unstyled" },
+  { b:6, who:"tool",  t:() => `theme tokens: ${cap(theme)}` },
+  { b:7, who:"tool",  t:() => `motion last: ${cap(motion)}, only the current step breathes` },
+  { b:7, who:"tool",  t:"browser check: console clean, 4 steps, nothing leaves the canvas" },
+  { b:7, who:"agent", t:"Done. One file, no network. Press P for presenter view, Shift+P for a PDF." }
+];
+const log = document.getElementById('log');
+log.innerHTML = LOG.map(l => `<p class="ln ${l.who}" data-b="${l.b}"></p>`).join('');
+const text = l => typeof l.t === 'function' ? l.t() : l.t;
+let typer = null;
+/* derived from the beat: every line up to it is shown; going forward, the newest beat's lines type in */
+function renderLog(silent){
+  clearTimeout(typer);
+  const lines = [...log.children];
+  const fresh = [];
+  lines.forEach((p, i) => {
+    const on = LOG[i].b <= step;
+    p.classList.toggle('on', on); p.classList.remove('typing');
+    if (on && LOG[i].b === step && !silent && forward && !reduced) fresh.push(i); else p.textContent = text(LOG[i]);
+  });
+  fresh.forEach(i => lines[i].textContent = '');
+  const typeNext = () => {
+    const i = fresh.shift(); if (i === undefined) return;
+    const p = lines[i], full = text(LOG[i]); let k = 0; p.classList.add('typing');
+    const tick = () => { p.textContent = full.slice(0, k += 2);
+      if (k < full.length) typer = setTimeout(tick, 14); else { p.classList.remove('typing'); typer = setTimeout(typeNext, 160); } };
+    tick();
   };
+  typeNext();
+}
+let walkT = [];
+function setPhase(n){
+  ms.className = n ? 'p' + n : '';
+  document.querySelectorAll('.ph').forEach(el => { el.classList.toggle('done', +el.dataset.p < n); el.classList.toggle('now', +el.dataset.p === n); });
+  document.querySelectorAll('.mdot').forEach(d => d.classList.toggle('now', n === 5 && +d.dataset.i === 3));
+  walkT.forEach(clearTimeout); walkT = [];
+  const w = document.querySelector('.mwalk');
+  if (n === 1 && !reduced) [0, 1, 2, 3, 2, 1, 0, 1, 2, 3].forEach((k, i) => walkT.push(setTimeout(() => w.style.left = (360 + k * 400) + 'px', 300 + i * 160)));
+}
+const t0 = Date.now();
+setInterval(() => { const s = (Date.now() - t0) / 1000 | 0; tclock.textContent = String(s / 60 | 0).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }, 1000);
+
+/* ── the stage's step machine: everything derived from the beat ───────────── */
+let step = -1, forward = true;
+function applyStep(n, again){
+  if (n === step && !again) return;
+  forward = n > step; step = n;
+  document.querySelectorAll('.beat').forEach(sec => {
+    const live = n >= +sec.dataset.from && n <= +sec.dataset.to;
+    sec.classList.toggle('live', live);
+    sec.querySelectorAll('.rv').forEach(el => el.classList.toggle('on', live && +el.dataset.b <= n));
+  });
+  setPhase(n >= 3 && n <= 7 ? n - 2 : 0);
+  renderLog(again);
+  document.querySelectorAll('.exs iframe[data-src]').forEach(f => { if (n >= 8 && !f.src) f.src = f.dataset.src; });
+  bar.style.width = (n / (STEPS - 1) * 100) + '%';
+  count.textContent = String(n + 1).padStart(2, '0') + ' / ' + STEPS;
+  caption.textContent = CAPTIONS[n];
+}
+/* on a style change, play what is on screen again in the new style */
+function replay(){
+  const vis = [...document.querySelectorAll('.page .rv.on')].filter(el => { const r = el.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; });
+  const st = [...document.querySelectorAll('.beat.live .rv.on')];
+  [...vis, ...st].forEach(el => el.classList.remove('on'));
+  requestAnimationFrame(() => requestAnimationFrame(() => { [...vis, ...st].forEach(el => el.classList.add('on')); }));
+}
+
+const runway = document.getElementById('runway'), stage = document.getElementById('stage'), topBar = document.getElementById('top');
+function fit(){
+  runway.style.height = (STEPS * innerHeight) + 'px';
+  const portrait = innerHeight > innerWidth;
+  const k = Math.min(innerWidth / 1920, (innerHeight - (portrait ? 0 : 0)) / 1080);
+  stage.style.transform = `translate(-50%,-50%) scale(${k})`;
+}
+const stepFromScroll = () => Math.max(0, Math.min(STEPS - 1, Math.round(scrollY / innerHeight)));
+const inRunway = () => scrollY < (STEPS - 1) * innerHeight + innerHeight / 2;
+addEventListener('scroll', () => { applyStep(stepFromScroll()); topBar.classList.toggle('light', !inRunway()); }, { passive:true });
+addEventListener('resize', () => { fit(); applyStep(stepFromScroll(), true); });
+/* the arrow keys move the page one beat, so keyboard and scroll are the same thing */
+addEventListener('keydown', e => {
+  if (!inRunway() || e.target.closest('iframe,input,textarea')) return;
+  const d = ['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(e.key) ? 1 : ['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key) ? -1 : 0;
+  if (!d) return;
+  e.preventDefault();
+  const to = stepFromScroll() + d;
+  if (to > STEPS - 1) return scrollTo({ top: document.getElementById('examples').offsetTop - 52, behavior: reduced ? 'auto' : 'smooth' });
+  scrollTo({ top: Math.max(0, to) * innerHeight, behavior: reduced ? 'auto' : 'smooth' });
+});
+
+/* ── below the stage: reveals on scroll, and live decks that play on their own ─ */
+/* checked on scroll rather than with an observer: 23 elements, and it never misses one */
+const pageRv = [...document.querySelectorAll('.page .rv')];
+function revealPage(){
+  for (const el of pageRv) if (!el.classList.contains('on') && el.getBoundingClientRect().top < innerHeight * .9) el.classList.add('on');
+}
+addEventListener('scroll', revealPage, { passive:true });
+document.querySelectorAll('.screen[data-deck]').forEach(box => {
+  const frame = box.querySelector('iframe'), n = +box.dataset.count;
+  let at = 0, timer = null, visible = false, driven = false;
+  const go = i => frame.contentWindow && frame.contentWindow.postMessage({ deck:'show', at:i }, '*');
+  const dwell = i => i === 0 ? 2400 : i === n - 1 ? 3400 : 1600;
+  const tick = () => { at = (at + 1) % n; go(at); timer = setTimeout(tick, dwell(at)); };
   const play = () => { if (!timer && visible && !driven && !reduced) timer = setTimeout(tick, dwell(at)); };
   const stop = () => { clearTimeout(timer); timer = null; };
   frame.addEventListener('load', () => { at = 0; go(0); play(); });
-  /* the moment someone clicks into a deck, it is theirs: autoplay stops for good */
-  addEventListener('blur', () => setTimeout(() => {
-    if (document.activeElement === frame) { driven = true; stop(); box.classList.add('driven'); }
-  }));
-  new IntersectionObserver(([e]) => { visible = e.isIntersecting; visible ? play() : stop(); },
-                           { threshold:.4 }).observe(box);
-  if (reduced) box.querySelector('.hint').textContent = 'Click it, then use ← →';
+  new IntersectionObserver(([e]) => {
+    visible = e.isIntersecting;
+    if (visible && !frame.src) frame.src = box.dataset.deck;
+    visible ? play() : stop();
+  }, { threshold:.35 }).observe(box);
+  addEventListener('blur', () => setTimeout(() => { if (document.activeElement === frame) { driven = true; stop(); box.classList.add('driven'); } }));
 });
-
 document.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
-  const text = document.getElementById(b.dataset.copy).textContent;
-  try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+  try { await navigator.clipboard.writeText(document.getElementById(b.dataset.copy).textContent); b.textContent = 'Copied'; }
   catch { b.textContent = 'Select and copy'; }
   setTimeout(() => b.textContent = 'Copy', 1800);
 });
+
+/* a returning visitor keeps the style they picked */
+let saved = null; try { saved = localStorage.getItem('sp-style'); } catch {}
+const [st0, mo0] = (saved || '').split('/');
+fit();
+pick(THEMES.includes(st0) ? st0 : 'house', MOTIONS.includes(mo0) ? mo0 : 'calm');
+applyStep(stepFromScroll(), true); revealPage();
+document.fonts.ready.then(() => applyStep(stepFromScroll(), true));
 </script>
 </body>
 </html>
