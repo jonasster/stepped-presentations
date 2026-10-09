@@ -1,6 +1,6 @@
 ---
 name: stepped-presentations
-description: Build interactive, animated HTML presentations — fixed-canvas decks you click through, where each press reveals the next piece and motion loops while you talk over it. Use this whenever someone wants a presentation, slide deck, talk, walkthrough, interactive timeline, animated diagram, learning journey, roadmap or portfolio showcase — anything they will "click through", "present", "show the team", or put on a projector. It applies when they say slides, deck, keynote, storyboard, journey, or ask to turn a Figma frame, a timeline, or a document into something presentable. Use it just as much for editing an existing deck of this kind: adding a slide or scene, changing a stepped reveal, fixing connector routing, adjusting looping animation, embedding screenshots, or making a deck work offline. Prefer it over reveal.js, PowerPoint export, or a React slide library — these decks are zero-dependency HTML that runs from a double-click.
+description: Build interactive, animated HTML presentations — fixed-canvas decks you click through, where each press reveals the next piece and motion loops while you talk over it. Use this whenever someone wants a presentation, slide deck, talk, walkthrough, interactive timeline, animated diagram, learning journey, roadmap or portfolio showcase — anything they will "click through", "present", "show the team", or put on a projector. It applies when they say slides, deck, keynote, storyboard, journey, or ask to turn a Figma frame, a timeline, or a document into something presentable. Use it just as much for editing an existing deck of this kind: adding a slide or scene, changing a stepped reveal, fixing connector routing, adjusting looping animation, embedding screenshots, making a deck work offline, changing its theme or animation style, matching a brand, adding speaker notes or a presenter view, or exporting it to PDF. Prefer it over reveal.js, PowerPoint export, or a React slide library — these decks are zero-dependency HTML that runs from a double-click.
 ---
 
 # Stepped presentations
@@ -107,8 +107,14 @@ reads it as stalling. In that case say what you are assuming in one line and bui
    several slides. Step count sets density, and density sets everything else.
 2. **The spine** — timeline, flow, comparison, journey, or a set of things? The spine *is* the
    geometry, and it is the one answer that is expensive to change afterwards.
-3. **The look** — a brand, a reference image, a deck to match, or house style. Offering "house
-   style unless you have something" makes this a one-word answer.
+3. **The look and the motion.** Offer the four themes and the four motion styles by name, one
+   line each, with a default, so it is a two-word answer. Also offer "or match something": a
+   link, an image, a brand PDF, or a path into a repo, and derive a theme from it. If they want
+   to see before choosing, point them at `assets/gallery.html`. Suggested wording:
+
+   > **Look:** House (documentary, condensed caps), Editorial (serif, warm, magazine), Swiss
+   > (black, white, one red, blunt), Midnight (dark stage). Or send me a site, file or repo to
+   > match. **Motion:** Calm, Crisp, Playful or Drawn. I'd go House + Calm unless you say otherwise.
 4. **Where it runs** — their laptop into a projector, a shared screen, or emailed around? This
    decides aspect ratio, whether assets must be inlined, and how hard offline has to be.
 5. **The words** — do they have them, or are you writing them? If you are writing them, write
@@ -117,8 +123,14 @@ reads it as stalling. In that case say what you are assuming in one line and bui
 6. **Who edits it after you.** If that is someone who does not read JavaScript, split the content
    out even for a short deck.
 
-Ask nothing you can decide and show. Colour with no brand to follow, easing curves, label
-placement, marker shape — decide those, build them, and let the deck ask the question.
+Ask nothing you can decide and show. Exact colours within a theme, easing curves, label
+placement, marker shape — decide those, build them, and let the deck ask the question. In
+one-shot mode, pick the theme and motion yourself from the signals (a board: Calm; a pitch:
+Swiss + Crisp; a dark conference stage: Midnight) and list the choice with your other decisions.
+
+Two things are not worth a question but are worth a line at the end: speaker notes and a PDF.
+Every deck built on the starter has a presenter view (`P`) and prints to PDF (`Shift+P`). Say
+so once, and write notes when you are writing the words.
 
 ### Checkpoints, in workshop mode
 
@@ -155,23 +167,37 @@ usually the person who owns the words.
 
 Both shapes use the same engine ideas. Start single-file; splitting later is mechanical.
 
-## House style
+## Themes and motion
 
-The default look, unless the project says otherwise. `references/house-style.md` has the full
-token set and the reasoning.
+A deck has one **theme** (how it looks) and one **motion style** (how it moves), chosen
+independently. Both are blocks of CSS custom properties merged into the deck's single `:root`,
+so any theme works with any motion, and the studio can tune every value afterwards.
 
-- **Barlow Condensed ExtraBold (800)** for display type, set uppercase. **Geist** for prose and
-  body. **Geist Mono** (500 body, 700 emphasis) for metadata, labels, counters, domains, months
-  — anything that is data rather than sentence.
+| Themes | | Motion styles | |
+|---|---|---|---|
+| **House** (default) | condensed caps, mono data, cool paper | **Calm** (default) | soft fades, small rise |
+| **Editorial** | serif, warm paper, sentence case | **Crisp** | fast wipes, no bounce |
+| **Swiss** | black, white, one red, square | **Playful** | pops out of the marker, overshoot |
+| **Midnight** | dark stage, warm accent | **Drawn** | lines draw on, titles type in |
+| **From a reference** | derived from a link, file or repo | | |
+
+The files are in `assets/themes/` and `assets/motion/`. `references/themes.md` covers when to
+use each, how to swap them into a deck, and how to derive a theme from a reference.
+`references/house-style.md` holds the rules every theme keeps:
+
 - Flat surfaces. No gradient meshes, no glow, no shadow except where it separates a real layer.
   Hover is an underline or a border, never a lift.
-- Colour carries identity, not decoration. Give each subject one accent and use it in **two
-  places** — its marker and its link — rather than tinting everything it touches.
-- Self-host the fonts as `woff2` in the repo. Google Fonts is one more thing that fails on a
-  guest network, and the fallback metrics will reflow the whole scene.
+- Colour carries identity, not decoration. Give each subject one palette colour (`--c1`…) and
+  use it in **two places**, its marker and its title, rather than tinting everything it touches.
+- Every text colour clears 4.5:1 on the paper, in every theme, including the greys.
+- Fonts are self-hosted, never a CDN. `scripts/embed_fonts.py` copies the faces a deck's theme
+  names next to it, or `--inline` embeds them so the file travels alone. A font CDN is one
+  more thing that fails on a guest network, and the fallback metrics reflow the whole scene.
 
 ## Build order
 
+0. **Copy `assets/starter.html`, swap in the chosen theme and motion blocks, and run
+   `scripts/embed_fonts.py` on it.** Every later measurement depends on the real faces.
 1. **Establish the canvas and the step machine first**, with placeholder boxes. Get `→`/`←`
    walking end to end before any content or styling exists. Every later problem is easier to see
    against a working skeleton, and in workshop mode this is the first thing you show.
@@ -193,10 +219,14 @@ Load these when the task needs them, not upfront:
 |---|---|
 | `references/engine.md` | Building or changing the stage, step machine, camera, reveal, or the data→DOM render |
 | `references/motion.md` | Adding or fixing looping animation, travelling pulses, connectors between things, or reduced-motion support |
-| `references/house-style.md` | Choosing type, colour, spacing — or deciding whether something looks generic |
+| `references/themes.md` | Choosing or applying a theme or motion style, or matching a brand, site, file or repo |
+| `references/house-style.md` | The rules every theme keeps: contrast, the reset, fonts offline, not looking generated, layout sizing |
+| `references/presenting.md` | Speaker notes, the presenter view, PDF and handouts, or adding them to an older deck |
 | `references/verification.md` | Before reporting any visual change as done |
+| `scripts/embed_fonts.py` | After choosing a theme: copies its faces next to the deck, or `--inline` embeds them |
 | `scripts/inline_assets.py` | Making a deck self-contained — embeds images as WebP data URIs |
-| `assets/starter.html` | Starting a new single-file deck; a working canvas + step machine to build on |
+| `assets/starter.html` | Starting a new single-file deck: canvas, step machine, sequence, notes, presenter view, print |
+| `assets/gallery.html` | Showing someone the themes and motion styles so they can pick by looking |
 
 ## Two habits worth keeping
 

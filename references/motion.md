@@ -6,6 +6,7 @@ machine see `engine.md`.
 ## Contents
 
 - [Two kinds of motion](#two-kinds-of-motion)
+- [Motion styles](#motion-styles)
 - [The reveal](#the-reveal)
 - [The transform trap](#the-transform-trap)
 - [Ambient loops](#ambient-loops)
@@ -30,17 +31,61 @@ must stop when the step is no longer current.
 Decoration that does neither is what makes a deck feel restless. If motion is not marking an
 arrival or pointing at the current subject, cut it.
 
+## Motion styles
+
+A deck has one motion style: **Calm**, **Crisp**, **Playful** or **Drawn**. Each is a block of
+tokens in `assets/motion/` (what they look like and when to use them: `themes.md`). Styles
+change *how much* and *how fast*, never the rules on this page: only the current step moves,
+reveals reverse exactly, reduced motion gets a static indicator.
+
+The way to keep that true is to write every reveal **once**, reading tokens, so that a style is
+a change of values rather than a change of code:
+
+| What differs between styles | Token | Calm | Crisp | Playful | Drawn |
+|---|---|---|---|---|---|
+| Duration of a reveal | `--t-reveal` | .6s | .36s | .62s | .9s |
+| Gap between the parts of one reveal | `--stagger` | .12s | .06s | .16s | .22s |
+| Rise into place | `--rise` | 10px | 0 | 0 | 0 |
+| Fly out of the marker | `--travel` | 0 | 0 | 1 | 0 |
+| Start scale | `--from-scale` | 1 | 1 | .5 | 1 |
+| Wipe from the left | `--wipe-from` | 0% | 100% | 0% | 0% |
+| Titles type in | `--title-anim` | none | none | none | type |
+| Halo strength | `--ambient-opacity` | .10 | .14 | .2 | .12 |
+
+When you add a new kind of element to a deck, give it the same treatment: opacity from
+`--t-fade`, transform from `--t-reveal`, the base transform composed with `--rise`, `--travel`
+and `--from-scale`, and a `clip-path: inset(0 var(--wipe-from) 0 0)`. Then all four styles work
+on it without a second thought. If you hard-code `.45s` on one element, the next style switch
+leaves it behind.
+
+Two CSS details the starter already handles, worth knowing if you write your own:
+
+- **Animate a token-named keyframe with longhands.** `animation: var(--title-anim) .9s steps(8)
+  both` reads a `--title-anim` of `none` as the fill mode and `both` as the name. Set
+  `animation-name: var(--title-anim)` on its own line.
+- **Custom properties work inside keyframes**, so a halo's strength can be a token:
+  `0%{ opacity: var(--ambient-opacity) }`.
+
 ## The reveal
 
-Drive it entirely from the `.on` class so it inverts for free:
+Drive it entirely from the `.on` class so it inverts for free, and compose the start state from
+the motion tokens:
 
 ```css
-.card{ opacity:0; transform: translate(calc(-50% + var(--sx,0px)), var(--sy,0px)) scale(.5);
-       transition: opacity .45s var(--ease), transform .62s var(--ease); }
-.card.on{ opacity:1; transform: translate(-50%,0) scale(1); }
+.card{ opacity:0; clip-path: inset(0 var(--wipe-from) 0 0);
+       transform: translate(calc(-50% + var(--sx,0px) * var(--travel)),
+                            calc(var(--sy,0px) * var(--travel) + var(--rise)))
+                  scale(var(--from-scale));
+       transition: opacity var(--t-fade) var(--ease), transform var(--t-reveal) var(--ease),
+                   clip-path var(--t-reveal) var(--ease); }
+.card.on{ opacity:1; clip-path: inset(0 0 0 0); transform: translate(-50%,0) scale(1);
+          transition-delay: calc(var(--stagger) * 2); }
 ```
 
-A nice touch that costs almost nothing: have each card fly out of the marker it belongs to.
+The delay sits on `.on` only, so a reveal is staggered on the way in and immediate on the way
+back: `←` should never make the presenter wait.
+
+The fly-out (`--travel:1`, Playful's signature) has each card leave the marker it belongs to.
 Compute the offset once, after layout, and store it as a custom property:
 
 ```js
@@ -86,21 +131,22 @@ grep -B4 'animation:.*popin' index.html | grep 'transform:translate'
 
 ## Ambient loops
 
-Gate on the active class so nothing runs off-screen:
+Gate on the class for the *current* step (the starter calls it `.now`; `.on` means "revealed
+so far") so only the thing being talked about moves:
 
 ```css
-.knot::after{ content:""; position:absolute; inset:0; border-radius:50%;
-              background:var(--c); opacity:0; }
-.knot.on::after{ animation: halo 4.4s var(--ease) infinite;
-                 animation-delay: var(--hd, 0s); }
+.knot.now::after{ content:""; position:absolute; inset:0; border-radius:inherit;
+                  background:var(--c);
+                  animation: halo var(--ambient-period) var(--ease-out) infinite; }
 
-@keyframes halo{ 0%{ transform:scale(1); opacity:.16 }
-                 70%,100%{ transform:scale(1.7); opacity:0 } }
+@keyframes halo{ 0%{ transform:scale(1); opacity:var(--ambient-opacity) }
+                 70%,100%{ transform:scale(var(--ambient-scale)); opacity:0 } }
 ```
 
-Stagger siblings with an inline `--hd` so they do not pulse in unison — synchronised pulsing
-reads as a progress bar and pulls the eye away from the speaker. Keep ambient motion faint;
-if you notice it while reading the slide, it is too strong.
+If a scene genuinely needs several things looping at once (every station on a flow that is
+live), stagger them with an inline `--hd` delay so they do not pulse in unison. Synchronised
+pulsing reads as a progress bar and pulls the eye away from the speaker. Keep ambient motion
+faint; if you notice it while reading the slide, it is too strong.
 
 ## Travelling pulses along a path
 
@@ -223,12 +269,15 @@ nobody notices is missing until it matters.
 
 ## Timing
 
-Reveals want to be quick enough not to hold the presenter up and slow enough to be seen:
-**0.45–0.65s**, with a slight overshoot ease like `cubic-bezier(.2,.75,.25,1)`. Stagger the
-parts of one reveal by ~0.15s so they read in order.
+The motion style sets the numbers; these are the bounds every style stays inside, and what to
+check if you tune one.
 
-Ambient loops sit at **2–5s**. Anything faster is a distraction; anything slower stops reading
+Reveals want to be quick enough not to hold the presenter up and slow enough to be seen:
+**0.35–0.9s**. Below that a reveal reads as a cut; above it the presenter waits for the slide.
+Stagger the parts of one reveal by **0.06–0.22s** so they read in order.
+
+Ambient loops sit at **3–5s**. Anything faster is a distraction; anything slower stops reading
 as motion.
 
-Camera moves are the exception — **~1s**, ease-out. A pan is the audience relocating, and
-rushing it is disorienting.
+Camera moves are the exception, **0.8–1.4s**, ease-out (`--camera-t`, `--ease-out`). A pan is
+the audience relocating, and rushing it is disorienting.

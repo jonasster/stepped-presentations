@@ -36,6 +36,15 @@ engine needs all of it.
 8. **Both themes**, if the deck has them, and **the small-screen notice** if it has one.
 9. **Deep links**, if you touched ids: the address updates as you navigate, and pasting one back
    in lands on the same step.
+10. **A new or changed theme**: the real faces loaded (`[...document.fonts].filter(f =>
+    f.status === 'loaded')`), nothing reaches the network (the resource list has no font CDN),
+    and the contrast check from `house-style.md` passes for ink, the greys, the accent and every
+    palette colour. A new display face changes widths, so step through every position.
+11. **A changed motion style**: step forward, then back, at every position. `←` must restore
+    the scene exactly, and nothing may still be moving on a step that is no longer current.
+12. **Presenter view or print**, if you touched the sequence, the notes or the markup: open
+    `?presenter` and confirm the notes and `n / total` follow `→`; print `?print` to PDF and
+    look at every page. There should be one page per position and nothing frozen mid-reveal.
 
 ## Measure, do not eyeball
 
@@ -62,7 +71,7 @@ function baselineIn(el){                    // an inline-block of zero height si
   p.remove(); return b;
 }
 const cv = document.createElement('canvas').getContext('2d');
-cv.font = '800 124px "Barlow Condensed"';
+cv.font = '800 124px "Barlow Condensed"';  // the deck's own --display face and weight
 const cap = cv.measureText('H').actualBoundingBoxAscent;
 ```
 

@@ -1,0 +1,32 @@
+/* Eval input for "theme-from-reference": a fictional company's design tokens.
+   Planted: --brand-orange fails 4.5:1 as text on --surface-base, and the display face
+   is proprietary, so the skill must adjust the one and substitute the other. */
+:root{
+  /* surfaces */
+  --surface-base:#fbfaf7;
+  --surface-raised:#ffffff;
+  --border-subtle:#e7e3da;
+
+  /* text */
+  --text-primary:#14213d;
+  --text-secondary:#4a5468;
+  --text-tertiary:#6b7385;
+
+  /* brand */
+  --brand-orange:#f28c28;
+  --brand-navy:#14213d;
+  --brand-teal:#1f7a7a;
+  --brand-plum:#6b3a6e;
+  --brand-moss:#4f6b2a;
+
+  /* type */
+  --font-display:"Northwind Sans Display",Helvetica,Arial,sans-serif;  /* licensed, not redistributable */
+  --font-body:"Source Serif 4",Georgia,serif;
+  --font-code:"Geist Mono",ui-monospace,monospace;
+  --heading-weight:700;
+  --heading-case:none;
+
+  /* shape */
+  --radius-sm:4px;
+  --radius-md:8px;
+}

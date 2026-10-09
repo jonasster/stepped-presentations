@@ -99,6 +99,12 @@ function prev(){
 stepping *back* into a slide, enter it fully revealed (the `storyFull` flag above) — the
 presenter is returning to something the audience has already seen.
 
+The starter goes one step further and flattens the whole deck into a list of positions, `SEQ`,
+one per press of `→`, with `show(i)` deriving slide and step from an entry. That gets the
+"enter fully revealed" behaviour for free, and it is what the presenter view, print and
+`#n` deep links are built on. Prefer it for new decks; `presenting.md` has the details and
+how to retrofit it.
+
 ## Data to DOM
 
 One array of content, one build pass, one update pass. Build creates nodes; update only toggles

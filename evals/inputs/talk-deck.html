@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hiring pipeline</title>
+<!-- Eval input for "notes-and-pdf": a finished, working deck with a single step machine
+     and no sequence, notes, presenter view or print mode. -->
+<style>
+:root{
+  --paper:#f3f1ec; --ink:#1d2433; --ink-2:#4d5566; --muted:#c9c6bd;
+  --ease:cubic-bezier(.2,.75,.25,1);
+  --display:"Arial Narrow",Arial,sans-serif;
+  --sans:"Segoe UI",system-ui,sans-serif;
+  --mono:ui-monospace,Consolas,monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+p,h1,h2,h3{margin:0}
+body{margin:0;background:#15161a;color:var(--ink);font-family:var(--sans);overflow:hidden}
+
+#viewport{position:fixed;inset:0}
+#stage{width:1920px;height:1080px;position:absolute;left:50%;top:50%;
+       background:var(--paper);overflow:hidden;transform-origin:center}
+
+.kicker{position:absolute;left:150px;top:110px;font-family:var(--mono);font-weight:700;
+        font-size:20px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-2)}
+h1{position:absolute;left:150px;top:150px;margin:0;font-family:var(--display);font-size:96px;
+   font-weight:800;text-transform:uppercase}
+
+.rail{position:absolute;left:150px;right:150px;top:600px;height:2px;background:var(--muted)}
+.dot{position:absolute;top:589px;width:24px;height:24px;border-radius:50%;background:var(--c);
+     transform:translate(-50%,0) scale(.5);opacity:0}
+.dot.on{animation:pop .5s var(--ease) forwards}
+.label{position:absolute;top:640px;transform:translateX(-50%);font-family:var(--mono);
+       font-size:18px;letter-spacing:.18em;text-transform:uppercase;color:var(--c);opacity:0;
+       transition:opacity .4s}
+.label.on{opacity:1}
+.card{position:absolute;top:380px;width:300px;padding:22px 24px;border-radius:10px;
+      background:color-mix(in srgb,var(--c) 12%,var(--paper));text-align:center;
+      transform:translate(-50%,0) scale(.5);opacity:0}
+.card.on{animation:pop .55s var(--ease) forwards}
+.card h3{margin:0;font-family:var(--display);font-size:36px;text-transform:uppercase;color:var(--c)}
+.card p{margin-top:8px;font-size:16px;line-height:1.45;color:var(--ink-2)}
+
+@keyframes pop{ to{ transform:translate(-50%,0) scale(1); opacity:1 } }
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+  <p class="kicker">Recruitment</p>
+  <h1>How we hire</h1>
+  <div class="rail"></div>
+  <div id="scene"></div>
+</div></div>
+
+<script>
+const STAGES = [
+  { id:"source",    label:"Week 1", name:"Source",    desc:"Roles go out to three channels",  color:"#2f5d8a" },
+  { id:"screen",    label:"Week 2", name:"Screen",    desc:"A 20 minute call, same five questions", color:"#8a4b14" },
+  { id:"interview", label:"Week 3", name:"Interview", desc:"Two panels, one of them practical", color:"#2f6b3f" },
+  { id:"offer",     label:"Week 4", name:"Offer",     desc:"Decided within 48 hours",          color:"#7a2f5d" }
+];
+
+const X0 = 420, COL = 360;
+const scene = document.getElementById('scene');
+STAGES.forEach((s, i) => {
+  const x = X0 + i * COL;
+  scene.insertAdjacentHTML('beforeend',
+    `<div class="dot"   data-i="${i}" style="left:${x}px;--c:${s.color}"></div>
+     <div class="label" data-i="${i}" style="left:${x}px;--c:${s.color}">${s.label}</div>
+     <div class="card"  data-i="${i}" style="left:${x}px;--c:${s.color}">
+       <h3>${s.name}</h3><p>${s.desc}</p></div>`);
+});
+
+let step = -1;
+function applyStep(n){
+  step = Math.max(-1, Math.min(n, STAGES.length - 1));
+  scene.querySelectorAll('.dot,.label,.card').forEach(el =>
+    el.classList.toggle('on', +el.dataset.i <= step));
+}
+addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' '){ e.preventDefault(); applyStep(step + 1); }
+  if (e.key === 'ArrowLeft'){ e.preventDefault(); applyStep(step - 1); }
+});
+
+const stage = document.getElementById('stage');
+function fitStage(){
+  const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+  stage.style.transform = `translate(-50%,-50%) scale(${k})`;
+}
+addEventListener('resize', fitStage);
+fitStage();
+applyStep(-1);
+</script>
+</body>
+</html>

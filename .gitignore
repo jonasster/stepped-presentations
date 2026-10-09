@@ -7,3 +7,6 @@ decks/
 # Stray build and screenshot output
 *.pdf
 shots*.png
+
+# Themes derived from someone's brand stay on their machine
+themes/local/

@@ -1,7 +1,9 @@
 # House style
 
-The default visual system. Deviate when a project has its own brand — but deviate deliberately,
-and keep the reasoning, because most of these rules exist to solve a specific failure.
+The rules every theme keeps. The themes themselves (House, Editorial, Swiss, Midnight, or one
+derived from a brand) are in `themes.md`; they choose faces and colours, and this file says how
+to use them. Deviate when a project needs it, but deviate deliberately and keep the reasoning,
+because most of these rules exist to solve a specific failure.
 
 ## Contents
 
@@ -16,22 +18,23 @@ and keep the reasoning, because most of these rules exist to solve a specific fa
 
 ## Type
 
-Three families, each with a job:
+Three roles, each a token, each with a job:
 
-| Family | Role | Weights |
+| Token | Role | In House |
 |---|---|---|
-| **Barlow Condensed** | Display — headlines, card titles, scene titles. Set uppercase. | 800 |
-| **Geist** | Prose — body copy, descriptions, anything read as sentences. | 400, 500, 600 |
-| **Geist Mono** | Data — labels, counters, months, domains, states, captions. | 500 body, 700 emphasis |
+| `--display` | Display: headlines, card titles, scene titles | Barlow Condensed 800, uppercase |
+| `--sans` | Prose: body copy, descriptions, anything read as sentences | Geist 400–600 |
+| `--mono` | Data: labels, counters, months, domains, states, captions | Geist Mono 500, 700 for emphasis |
 
 The split does real work: the mono is a *signal* that something is metadata rather than
 narration, so a reader can skip it or find it without reading it. Do not use mono for prose, and
-do not use the condensed display face for anything long — it is built for short uppercase runs
-and gets tiring fast.
+do not use the display face for anything long. A condensed or heavy display face is built for
+short runs and gets tiring fast. Use the `.display` and `.meta` classes in the starter, which
+read the theme's case and tracking tokens, rather than setting type by hand.
 
-Condensed extra-bold at large sizes wants tight tracking (`letter-spacing:.005em` or less).
-Mono set as small uppercase labels wants the opposite — `.16em` to `.34em` — or it reads as
-code rather than as a label.
+Display type at large sizes wants tight tracking (`--display-tracking`, at or below `.005em`).
+Mono set as small uppercase labels wants the opposite, `.12em` to `.34em`, or it reads as code
+rather than as a label.
 
 **Step type down by tier.** When elements sit at different levels of importance — a main row and
 a secondary row — scale the type, not just the position:
@@ -47,12 +50,13 @@ as importance before it reads anything else.
 
 ## Colour
 
-- One **paper** and one **ink**, warm or cool but consistent: e.g. `--paper:#eff1f5`,
-  `--ink:#211a52`.
-- One **accent per subject**, used in exactly **two places** — its marker and its link or CTA.
-  Tinting everything a subject touches turns identity into decoration and makes the page loud.
-- Card fills are the accent at **11–14%** over the paper. Enough to group, not enough to shout.
-- A muted grey for anything not yet real: placeholders, "to be determined", disabled states.
+- One **paper** and one **ink**, warm or cool but consistent (`--paper`, `--ink`).
+- One **palette colour per subject** (`--c1`…`--c5`), used in exactly **two places**: its marker
+  and its title or link. Tinting everything a subject touches turns identity into decoration and
+  makes the page loud.
+- Card fills are the subject colour at `--fill-mix` (8–14%) over the paper. Enough to group,
+  not enough to shout.
+- `--muted` for anything not yet real: placeholders, "to be determined", disabled states.
 
 When you need a palette that reads as *outside* the main one — a before/after, a hobby/work
 split — change **saturation and value**, not just hue. A softer, warmer set beside a deep
@@ -119,10 +123,22 @@ relying on the phantom margins, and verify.
 
 ## Fonts offline
 
-Self-host as `woff2` in the repo, subset to the languages you need:
+Self-host as `woff2`, subset to the languages you need. The skill ships the faces of every
+theme in `assets/fonts/` (latin subset, which covers æ, ø, å, ä, ö, ü and the rest of Western
+Europe, with OFL licences beside them). `scripts/embed_fonts.py` reads the family names in a
+deck's `:root` and copies just those faces into the deck's `fonts/` folder, or with `--inline`
+embeds them as base64 so a single file travels alone:
+
+```bash
+python scripts/embed_fonts.py decks/roadmap/index.html            # fonts/ next to the deck
+python scripts/embed_fonts.py decks/roadmap/index.html --inline   # one self-contained file
+```
+
+A face the skill does not ship, for example a brand's own OFL face, goes in the same way by
+hand:
 
 ```css
-@font-face{ font-family:"Barlow Condensed"; src:url(../fonts/barlow-800-latin.woff2) format("woff2");
+@font-face{ font-family:"Barlow Condensed"; src:url(fonts/barlow-condensed-800.woff2) format("woff2");
             font-weight:800; font-display:block; }
 ```
 

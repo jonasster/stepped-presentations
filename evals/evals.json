@@ -15,7 +15,7 @@
         "Reveal is driven by a step index, so milestones appear one at a time rather than all at once",
         "Backwards navigation works: a left-arrow or equivalent steps the reveal back down",
         "Keyboard navigation is bound to ArrowRight/ArrowLeft",
-        "Deck still functions with no network: any remote font has a local fallback stack",
+        "Deck still functions with no network: no font CDN or remote stylesheet is linked; faces are self-hosted or inlined, with a local fallback stack",
         "Does not stall on an intake round: the prompt already gives the occasion, the spine, the content and where it runs, so the deck is produced in this turn",
         "Any decision made on the user's behalf (visual style, step count, layout) is stated back as an assumption they can overturn"
       ]
@@ -72,9 +72,64 @@
         "States which way of working it is assuming (a back-and-forth build with checkpoints rather than a one-shot) and leaves the user free to switch",
         "Asks what shape the content takes — a timeline, a flow, a comparison, a set of cases — since this determines the geometry",
         "Asks for the brand guidelines or a reference rather than inventing a visual identity for a client pitch",
+        "Offers the named themes and motion styles with a default, and offers to derive a theme from the brand guidelines once they are shared",
         "Does not ask about decisions it could make and show, such as easing curves, marker shapes or exact colour values",
         "Does not deliver a finished, styled deck before the brief is settled",
         "Does not ask process questions such as whether the user would like to iterate"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "named-theme-and-motion",
+      "prompt": "Can you make me a click-through for our Q3 strategy review on monday? Four bets we're making: price increase for the pro tier, cutting the legacy app, a partner channel in germany, and hiring a second sales team. Use the Swiss theme with Crisp motion please. Board audience, so keep it tight.",
+      "expected_output": "A deck built on the starter with the Swiss theme tokens and the Crisp motion tokens in its :root, the four bets as data, self-hosted fonts, and no intake round.",
+      "files": [],
+      "assertions": [
+        "The deck's :root carries the Swiss theme tokens (white paper, near-black ink, red accent, Archivo display, square markers via --marker-radius:0%)",
+        "The deck's :root carries the Crisp motion tokens (--wipe-from:100%, a reveal duration around .36s, no --travel)",
+        "Theme and motion values live as custom properties in a single :root block, not hard-coded per component",
+        "All four bets appear as entries in a data array, not hand-written markup",
+        "No font CDN is linked; Archivo and the mono face are self-hosted next to the deck or inlined (embed_fonts.py or equivalent)",
+        "Every text colour used clears 4.5:1 against the paper",
+        "Does not ask which theme or motion to use, since the prompt names both, and does not run an intake round",
+        "Mentions that speaker notes, the presenter view (P) and PDF export (Shift+P) are available"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "theme-from-reference",
+      "prompt": "I want the deck for our onboarding talk to look like our own design system, not a generic template. Our tokens are in this repo, have a look and match it. Content is the five steps of a new hire's first week: laptop and accounts, meet your buddy, shadow a support shift, ship a small fix, demo it on friday.",
+      "expected_output": "Reads the design tokens file, derives a theme in the skill's token schema (paper, ink, greys, accent, palette, display/sans/mono, radius), checks and fixes contrast with the changes stated, maps any proprietary face to a shipped or OFL one and says so, saves it under themes/local/, and builds the five-step deck with it.",
+      "files": [
+        "inputs/design-tokens.css"
+      ],
+      "assertions": [
+        "Reads the provided tokens file before choosing any colours or faces",
+        "The deck's colours trace back to values in the tokens file (paper, ink and accent are recognisably the source's)",
+        "Runs a contrast check and reports any colour it had to darken or lighten to reach 4.5:1, naming the original and new value",
+        "If the source names a proprietary face, substitutes a shipped or OFL face and says which and why; no font CDN is linked",
+        "The derived theme uses the same token names as assets/themes/*.css, so the studio and embed_fonts.py work on it",
+        "Saves the derived theme to themes/local/<name>.css with a comment naming its source",
+        "All five first-week steps appear as data entries in order"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "notes-and-pdf",
+      "prompt": "Here's my deck from last month (attached). I'm giving it again next week but this time I need speaker notes I can see on my laptop while the projector shows the slides, and the organisers want a PDF copy to send out afterwards. Can you set that up? Don't change how it looks.",
+      "expected_output": "Adds a position sequence, notes per position, the presenter view and the ?print mode to the existing deck following references/presenting.md, without changing its visual design; verifies the presenter view and prints a PDF with one page per position.",
+      "files": [
+        "inputs/talk-deck.html"
+      ],
+      "assertions": [
+        "Adds a notes field per step or position in the data rather than hard-coding notes into markup",
+        "Adds a presenter view the presenter can open from the deck (a key such as P or a button) that shows the current notes and what comes next",
+        "Presenter and audience windows stay in sync in both directions using window.open/opener and postMessage, which works from file://",
+        "Adds a print mode with one page per position at the canvas size, with transitions and animations off so nothing prints mid-reveal",
+        "Explains how to get the PDF (the browser's Save as PDF, or the headless Chrome command)",
+        "Does not change the deck's colours, type, layout or wording",
+        "Leaves notes empty or clearly marked as placeholders rather than inventing what the speaker will say, unless asked to write them",
+        "Reports what was verified: the presenter view following the deck, and the PDF's page count"
       ]
     }
   ]
