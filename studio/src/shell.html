@@ -78,7 +78,8 @@ aside label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:
 .georow{display:grid;grid-template-columns:1fr 64px;gap:8px;align-items:center;margin-bottom:6px}
 .georow label{grid-column:1/-1;margin:6px 0 0}
 .georow .num{font-family:var(--mono);font-size:12px;padding:5px 6px}
-.georow input[type=color]{grid-column:1/-1}
+.georow input[type=color],.georow .tok{grid-column:1/-1}
+.georow .tok{font-family:var(--mono);font-size:12px;padding:5px 6px}
 
 /* ---- preview ---- */
 #mid{grid-area:mid;position:relative;background:#0e0e13;display:flex;

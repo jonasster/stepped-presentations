@@ -381,14 +381,24 @@ function render() {
 
   /* theme */
   const th = $('#theme'); th.textContent = '';
-  for (const [name, value] of Object.entries(v.readTokens())) {
-    if (!isColor(value)) continue;
+  /* colours first, then everything else (type, shape, motion timings) as text */
+  const tokens = Object.entries(v.readTokens());
+  for (const [name, value] of tokens.filter(([, val]) => isColor(val))) {
     const row = elm('div', 'georow');
     row.append(elm('label', null, name));
     const pick = elm('input'); pick.type = 'color'; pick.value = value;
     pick.oninput = () => push({ op: 'setToken', name, value: pick.value },
                               { live: () => livePatchToken(name, pick.value) });
     row.append(pick); th.append(row);
+  }
+  for (const [name, value] of tokens.filter(([, val]) => !isColor(val))) {
+    const row = elm('div', 'georow');
+    row.append(elm('label', null, name));
+    const inp = elm('input', 'tok'); inp.value = value;
+    inp.onchange = () => inp.value.trim() && !/[;{}]/.test(inp.value) &&
+      push({ op: 'setToken', name, value: inp.value.trim() },
+           { live: () => livePatchToken(name, inp.value.trim()) });
+    row.append(inp); th.append(row);
   }
 }
 
