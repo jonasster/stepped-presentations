@@ -9,6 +9,9 @@ framework, no CDN, no network. That constraint exists because these files get op
 borrowed laptop, on a guest network, ten minutes before someone speaks, and anything that
 can fail to load will eventually fail to load in front of an audience.
 
+**See it working:** [jonasster.github.io/stepped-presentations](https://jonasster.github.io/stepped-presentations/)
+has four live example decks, the style gallery, and how to use it.
+
 ## Installing
 
 Clone into your skills directory:
@@ -121,6 +124,8 @@ prompt rather than a properties panel.
 | `references/verification.md` | The checklist to run in a browser before calling a visual change done |
 | `assets/starter.html` | A working deck to build on: canvas, step machine, theme and motion tokens, notes, presenter view, print |
 | `assets/gallery.html` | Every theme with every motion style, on one sample scene |
+| `examples/` | Four finished decks built with the skill, one per common shape: a roadmap, a flow diagram, a decision, and a journey with a camera. Each is one self-contained file |
+| `index.html` | The landing page, served by GitHub Pages from the repo root (`.nojekyll` keeps Pages from processing it) |
 | `assets/themes/`, `assets/motion/` | One token block per theme and per motion style |
 | `assets/fonts/` | The self-hosted faces for all four themes (latin subset), with their OFL licences |
 | `scripts/embed_fonts.py` | Copies the faces a deck's theme uses next to it, or `--inline` embeds them |

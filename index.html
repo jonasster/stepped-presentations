@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stepped presentations: a Claude Code skill</title>
+<meta name="description" content="A Claude Code skill for building interactive HTML presentations you click through. One file, no build, no network: it runs from a double-click.">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<style>
+/* The landing page wears the House theme, so it looks like what the skill makes. */
+:root{
+  --paper:#eff1f5; --paper-2:#e6e9f0; --ink:#211a52; --ink-2:#4f5466; --ink-3:#62626b;
+  --line:#d9dde6; --accent:#4a2fe0; --outside:#12121a;
+  --c1:#1e1b4b; --c2:#a14f09; --c3:#0b6d82; --c4:#0b7a54;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --sans:"Geist","Segoe UI",system-ui,sans-serif;
+  --mono:"Geist Mono",ui-monospace,Consolas,monospace;
+  --ease:cubic-bezier(.33,0,.2,1);
+  --wrap:1200px; --gutter:clamp(16px,4vw,40px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 var(--sans);
+     -webkit-font-smoothing:antialiased}
+p,h1,h2,h3,h4,ul,ol,figure,blockquote,pre{margin:0}
+a{color:inherit}
+img,iframe{display:block;max-width:100%}
+code,kbd,pre{font-family:var(--mono)}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 var(--gutter)}
+.display{font-family:var(--display);font-weight:800;text-transform:uppercase;
+         letter-spacing:.005em;line-height:.95}
+.meta{font-family:var(--mono);font-weight:500;text-transform:uppercase;letter-spacing:.2em;
+      font-size:12px;color:var(--ink-3)}
+.kicker{display:flex;align-items:center;gap:12px}
+.kicker::before{content:"";width:11px;height:11px;border-radius:50%;background:var(--accent);flex:none}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* ---- top bar ---- */
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 94%,transparent);
+     border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:28px;height:60px}
+.mark{font:700 14px/1 var(--mono);letter-spacing:.06em;text-decoration:none;white-space:nowrap}
+.mark b{color:var(--accent)}
+.top nav{display:flex;gap:24px;margin-left:auto;font-size:15px}
+.top nav a{text-decoration:none;color:var(--ink-2)}
+.top nav a:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+@media (max-width:760px){.top nav a:not(.gh){display:none}}
+
+/* ---- hero ---- */
+.hero{padding:clamp(48px,8vw,104px) 0 clamp(40px,6vw,72px)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(32px,5vw,64px);
+            align-items:center}
+.hero h1{margin-top:22px;font-size:clamp(56px,8.4vw,112px)}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero .lede{margin-top:24px;font-size:clamp(18px,1.6vw,20px);color:var(--ink-2);max-width:34em}
+.actions{margin-top:32px;display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 20px;border-radius:6px;
+     font:600 15px/1 var(--sans);text-decoration:none;border:1px solid var(--ink);cursor:pointer}
+.btn.solid{background:var(--ink);color:var(--paper)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn:hover{text-decoration:underline;text-underline-offset:4px}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr}}
+
+/* ---- a live deck in a frame ---- */
+.screen{position:relative;border-radius:8px;overflow:hidden;background:var(--outside);
+        border:1px solid var(--line)}
+.screen iframe{width:100%;aspect-ratio:16/9;border:0}
+.screen .hint{position:absolute;left:12px;bottom:12px;padding:6px 10px;border-radius:4px;
+              background:rgba(18,18,26,.82);color:#e7e7ee;font:12px/1.2 var(--mono);
+              pointer-events:none;transition:opacity .3s}
+.screen.driven .hint{opacity:0}
+.keys{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--ink-3)}
+kbd{display:inline-block;min-width:24px;padding:2px 6px;border:1px solid var(--line);border-bottom-width:2px;
+    border-radius:4px;background:#fff;font-size:12px;text-align:center;color:var(--ink)}
+
+/* ---- sections ---- */
+section.band{padding:clamp(56px,8vw,96px) 0;border-top:1px solid var(--line)}
+.head{max-width:44em}
+.head h2{margin-top:16px;font-size:clamp(40px,5.6vw,68px)}
+.head p{margin-top:16px;color:var(--ink-2);font-size:18px}
+
+/* what it is for */
+.uses{margin-top:48px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line)}
+.uses li{list-style:none;padding:24px 24px 28px 0;border-bottom:1px solid var(--line)}
+.uses li:not(:nth-child(3n+1)){padding-left:24px;border-left:1px solid var(--line)}
+.uses h3{font:700 19px/1.3 var(--sans);letter-spacing:-.01em}
+.uses p{margin-top:8px;font-size:15.5px;color:var(--ink-2)}
+.uses{padding:0}
+@media (max-width:900px){.uses{grid-template-columns:1fr 1fr}
+  .uses li:not(:nth-child(3n+1)){padding-left:0;border-left:0}
+  .uses li:nth-child(2n){padding-left:24px;border-left:1px solid var(--line)}}
+@media (max-width:560px){.uses{grid-template-columns:1fr}
+  .uses li:nth-child(2n){padding-left:0;border-left:0}}
+
+/* showcase */
+.shows{margin-top:48px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:56px 40px}
+.show figcaption{margin-top:18px}
+.show h3{font-size:34px;font-family:var(--display);font-weight:800;text-transform:uppercase;line-height:1}
+.chips{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:6px 8px;
+      border:1px solid var(--line);border-radius:4px;color:var(--ink-2);background:#fff}
+.show p{margin-top:12px;color:var(--ink-2);font-size:15.5px}
+.show blockquote{margin-top:14px;padding-left:14px;border-left:2px solid var(--accent);
+                 font-size:15px;color:var(--ink);font-style:normal}
+.show blockquote::before{content:"You ask: ";font:600 11px/1 var(--mono);letter-spacing:.14em;
+                         text-transform:uppercase;color:var(--ink-3)}
+.links{margin-top:14px;display:flex;gap:18px;font-size:14px}
+.links a{color:var(--accent);text-underline-offset:3px}
+@media (max-width:860px){.shows{grid-template-columns:1fr}}
+
+/* themes */
+.styles{margin-top:40px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px}
+.styles dl{margin:0}
+.styles dt{font:700 17px/1.3 var(--sans);margin-top:18px}
+.styles dt:first-of-type{margin-top:8px}
+.styles dd{margin:4px 0 0;color:var(--ink-2);font-size:15.5px}
+.styles h3{font-size:30px}
+.gallery{margin-top:40px}
+.gallery iframe{aspect-ratio:16/10}
+@media (max-width:760px){.styles{grid-template-columns:1fr}}
+
+/* how to use */
+.steps{margin-top:48px;display:grid;gap:0;counter-reset:s;padding:0}
+.steps>li{list-style:none;display:grid;grid-template-columns:120px minmax(0,1fr);gap:24px;
+          padding:32px 0;border-top:1px solid var(--line);counter-increment:s}
+.steps>li::before{content:counter(s,decimal-leading-zero);font:800 64px/1 var(--display);color:var(--accent)}
+.steps h3{font:700 24px/1.25 var(--sans);letter-spacing:-.01em}
+.steps p{margin-top:10px;color:var(--ink-2);max-width:42em}
+.steps ul{margin-top:12px;padding-left:18px;color:var(--ink-2)}
+.steps ul li{margin-top:6px}
+.cmd{margin-top:16px;display:flex;align-items:stretch;border:1px solid var(--ink);border-radius:6px;
+     overflow:hidden;background:#fff;max-width:100%}
+.cmd pre{flex:1;min-width:0;overflow-x:auto;padding:14px 16px;font-size:14px;line-height:1.5}
+.cmd button{flex:none;border:0;border-left:1px solid var(--ink);background:var(--ink);color:var(--paper);
+            font:600 13px/1 var(--sans);padding:0 18px;cursor:pointer}
+.prompt{margin-top:14px;padding:16px 18px;background:#fff;border:1px solid var(--line);border-radius:6px;
+        font-size:16px;color:var(--ink)}
+.keytable{margin-top:14px;display:grid;grid-template-columns:auto 1fr;gap:10px 18px;align-items:center;
+          font-size:15.5px;color:var(--ink-2)}
+/* minmax(0,…) and min-width:0, or the one-line install command props the column open */
+.steps>li>div{min-width:0}
+@media (max-width:640px){.steps>li{grid-template-columns:minmax(0,1fr);gap:12px}.steps>li::before{font-size:44px}}
+
+/* built in */
+.feats{margin-top:48px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px 28px;padding:0}
+.feats li{list-style:none;border-top:2px solid var(--ink);padding-top:14px}
+.feats h3{font:700 17px/1.3 var(--sans)}
+.feats p{margin-top:8px;font-size:15px;color:var(--ink-2)}
+@media (max-width:900px){.feats{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.feats{grid-template-columns:1fr}}
+
+/* footer */
+footer{padding:48px 0 64px;border-top:1px solid var(--line);font-size:15px;color:var(--ink-3)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-between}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <a class="mark" href="#">stepped<b>/</b>presentations</a>
+  <nav>
+    <a href="#examples">Examples</a>
+    <a href="#styles">Themes</a>
+    <a href="#use">How to use</a>
+    <a class="gh" href="https://github.com/jonasster/stepped-presentations">GitHub</a>
+  </nav>
+</div></header>
+
+<main>
+<section class="hero"><div class="wrap">
+  <div>
+    <p class="meta kicker">A skill for Claude Code</p>
+    <h1 class="display">Decks you <em>click</em> through</h1>
+    <p class="lede">Describe a talk and Claude builds it as one HTML file: a fixed stage where
+      every press reveals the next piece, and a quiet loop marks whatever you are talking
+      about. No build, no framework, no network. It runs from a double-click on a borrowed
+      laptop, ten minutes before you speak.</p>
+    <div class="actions">
+      <a class="btn solid" href="#use">Install the skill</a>
+      <a class="btn ghost" href="#examples">See what it makes</a>
+    </div>
+  </div>
+  <div>
+    <div class="screen" data-deck="examples/roadmap/index.html" data-count="8" data-hero>
+      <iframe title="Example deck: a 2026 roadmap, playing" loading="eager"></iframe>
+      <span class="hint">Playing on its own. Click it, then use ← →</span>
+    </div>
+    <p class="keys"><span><kbd>→</kbd> next</span><span><kbd>←</kbd> back</span>
+      <span><kbd>F</kbd> show all</span><span><kbd>P</kbd> presenter view</span></p>
+  </div>
+</div></section>
+
+<section class="band" id="for"><div class="wrap">
+  <div class="head">
+    <p class="meta kicker">What it is for</p>
+    <h2 class="display">When the picture does the explaining</h2>
+    <p>Slides are pages you flip. A stepped deck is one scene that builds while you talk, so
+      the room sees the thing you are describing, in the order you describe it.</p>
+  </div>
+  <ul class="uses">
+    <li><h3>Roadmaps and timelines</h3><p>Milestones that land one at a time, so the date arrives with its reason.</p></li>
+    <li><h3>Flows and architecture</h3><p>Boxes and routed wires, with a pulse that travels the connection you are on.</p></li>
+    <li><h3>Decisions</h3><p>Options against criteria, narrowed down in front of the people who have to agree.</p></li>
+    <li><h3>Stories and journeys</h3><p>A road wider than the screen, with a camera that follows you along it.</p></li>
+    <li><h3>Walkthroughs and portfolios</h3><p>Work laid out as a set, with detail panels for the pieces someone asks about.</p></li>
+    <li><h3>Teaching</h3><p>A concept built up in steps you can go back over, and print as a handout afterwards.</p></li>
+  </ul>
+</div></section>
+
+<section class="band" id="examples"><div class="wrap">
+  <div class="head">
+    <p class="meta kicker">Examples</p>
+    <h2 class="display">Four decks it built</h2>
+    <p>Each is a single file, live below. They play on their own; click one to drive it. Each
+      one also shows a theme and a motion style, and every file is readable source.</p>
+  </div>
+  <div class="shows">
+    <figure class="show">
+      <div class="screen" data-deck="examples/roadmap/index.html" data-count="8">
+        <iframe title="Example deck: roadmap timeline" loading="lazy"></iframe>
+        <span class="hint">Click to drive</span></div>
+      <figcaption>
+        <h3>Roadmap</h3>
+        <div class="chips"><span class="chip">House</span><span class="chip">Calm</span><span class="chip">Timeline</span></div>
+        <p>Six milestones on a year-long spine. Cards alternate sides so neighbours never share
+          a lane, and only the current marker breathes.</p>
+        <blockquote>Our 2026 roadmap for the all-hands, six milestones, one at a time as I talk.</blockquote>
+        <p class="links"><a href="examples/roadmap/index.html">Open full screen</a>
+          <a href="https://github.com/jonasster/stepped-presentations/blob/main/examples/roadmap/index.html">Source</a></p>
+      </figcaption>
+    </figure>
+    <figure class="show">
+      <div class="screen" data-deck="examples/flow/index.html" data-count="9">
+        <iframe title="Example deck: animated flow diagram" loading="lazy"></iframe>
+        <span class="hint">Click to drive</span></div>
+      <figcaption>
+        <h3>Flow diagram</h3>
+        <div class="chips"><span class="chip">Midnight</span><span class="chip">Drawn</span><span class="chip">Flow</span></div>
+        <p>A data pipeline with two side branches. Wires are routed from explicit waypoints,
+          draw themselves on, and a pulse runs the one you are explaining.</p>
+        <blockquote>Explain our pipeline to non-technical people: ingest, clean, enrich, warehouse,
+          dashboard, plus quarantine and alerting.</blockquote>
+        <p class="links"><a href="examples/flow/index.html">Open full screen</a>
+          <a href="https://github.com/jonasster/stepped-presentations/blob/main/examples/flow/index.html">Source</a></p>
+      </figcaption>
+    </figure>
+    <figure class="show">
+      <div class="screen" data-deck="examples/decision/index.html" data-count="8">
+        <iframe title="Example deck: comparison and decision" loading="lazy"></iframe>
+        <span class="hint">Click to drive</span></div>
+      <figcaption>
+        <h3>Decision</h3>
+        <div class="chips"><span class="chip">Swiss</span><span class="chip">Crisp</span><span class="chip">Comparison</span></div>
+        <p>Four options against four bars, one row per step. Each option is struck through
+          exactly where it fails, and the last step names the one left.</p>
+        <blockquote>We need a decision on where booking should live. Four proposals, and the bars
+          finance agreed.</blockquote>
+        <p class="links"><a href="examples/decision/index.html">Open full screen</a>
+          <a href="https://github.com/jonasster/stepped-presentations/blob/main/examples/decision/index.html">Source</a></p>
+      </figcaption>
+    </figure>
+    <figure class="show">
+      <div class="screen" data-deck="examples/journey/index.html" data-count="9">
+        <iframe title="Example deck: story and journey" loading="lazy"></iframe>
+        <span class="hint">Click to drive</span></div>
+      <figcaption>
+        <h3>Journey</h3>
+        <div class="chips"><span class="chip">Editorial</span><span class="chip">Playful</span><span class="chip">Story</span></div>
+        <p>Seven stops on a road wider than the screen. The road draws to each stop, and the
+          camera moves only when the next card would be cut off.</p>
+        <blockquote>Walk the team through the life of one bug report, from the customer's email to
+          our reply.</blockquote>
+        <p class="links"><a href="examples/journey/index.html">Open full screen</a>
+          <a href="https://github.com/jonasster/stepped-presentations/blob/main/examples/journey/index.html">Source</a></p>
+      </figcaption>
+    </figure>
+  </div>
+</div></section>
+
+<section class="band" id="styles"><div class="wrap">
+  <div class="head">
+    <p class="meta kicker">Themes and motion</p>
+    <h2 class="display">Pick a look, pick a pace</h2>
+    <p>How a deck looks and how it moves are chosen separately, so any theme works with any
+      motion style. Or hand Claude a link, a brand PDF or a path into a repo, and it derives a
+      theme from that, fixing any colour too faint to read on a projector.</p>
+  </div>
+  <div class="styles">
+    <div><h3 class="display">Themes</h3><dl>
+      <dt>House</dt><dd>Condensed capitals, mono for anything that is data, cool paper.</dd>
+      <dt>Editorial</dt><dd>A serif display in sentence case, warm paper, one deep accent.</dd>
+      <dt>Swiss</dt><dd>White, black and one red. Square corners, strong rules.</dd>
+      <dt>Midnight</dt><dd>A dark stage with a warm accent, for rooms with the lights down.</dd>
+      <dt>From a reference</dt><dd>Matched to your site, brand guide or design tokens.</dd>
+    </dl></div>
+    <div><h3 class="display">Motion</h3><dl>
+      <dt>Calm</dt><dd>Soft fades and a small rise. Nothing competes with the speaker.</dd>
+      <dt>Crisp</dt><dd>Fast, clean wipes. No bounce, no travel.</dd>
+      <dt>Playful</dt><dd>Cards pop out of the marker they belong to and overshoot a little.</dd>
+      <dt>Drawn</dt><dd>Lines draw on, titles type in, the camera takes its time.</dd>
+    </dl></div>
+  </div>
+  <div class="screen gallery">
+    <iframe src="assets/gallery.html" title="Style gallery: every theme with every motion style" loading="lazy"></iframe>
+  </div>
+</div></section>
+
+<section class="band" id="use"><div class="wrap">
+  <div class="head">
+    <p class="meta kicker">How to use it</p>
+    <h2 class="display">Install, ask, present</h2>
+  </div>
+  <ol class="steps">
+    <li><div>
+      <h3>Install the skill</h3>
+      <p>Clone it into your Claude Code skills folder. Claude picks it up in the next session,
+        and loads it whenever you ask for something you will click through or present.</p>
+      <div class="cmd"><pre id="install">git clone https://github.com/jonasster/stepped-presentations ~/.claude/skills/stepped-presentations</pre>
+        <button type="button" data-copy="install">Copy</button></div>
+    </div></li>
+    <li><div>
+      <h3>Ask for the deck</h3>
+      <p>Say what it is for, when you present, and what goes in it. If that is all there,
+        Claude builds the whole deck and lists the choices it made for you. If the content is
+        not settled yet, it asks one short round of questions, each with a default, then stops
+        at a few checkpoints so you can steer.</p>
+      <p class="prompt">“I present our 2026 roadmap at the all-hands next week. Six milestones,
+        appearing one at a time as I talk. It has to run off my laptop; the meeting room wifi is
+        terrible. Swiss theme, Crisp motion.”</p>
+      <p>It works on decks you already have, too: add a step, fix a connector that runs
+        through a label, embed screenshots, or make a deck self-contained before you email it.</p>
+    </div></li>
+    <li><div>
+      <h3>Present it</h3>
+      <p>Double-click the file. Everything you need is on the keyboard:</p>
+      <div class="keytable">
+        <span><kbd>→</kbd> <kbd>Space</kbd></span><span>next step</span>
+        <span><kbd>←</kbd></span><span>back, exactly the way you came</span>
+        <span><kbd>R</kbd> <kbd>F</kbd></span><span>reset, or show the whole slide</span>
+        <span><kbd>P</kbd></span><span>presenter view: your notes, the next step and a timer in a second window</span>
+        <span><kbd>Shift</kbd> <kbd>P</kbd></span><span>a PDF with one page per step, or a handout with your notes</span>
+      </div>
+    </div></li>
+    <li><div>
+      <h3>Fine-tune without a prompt</h3>
+      <p>Nudging a colour, fixing a typo or trying another easing is not worth a conversation.
+        The studio opens a deck folder in Chrome or Edge, runs your deck beside an outline and
+        an inspector, and writes each change back into your source one value at a time.</p>
+      <div class="cmd"><pre id="studio">python -m http.server 5180 --directory studio</pre>
+        <button type="button" data-copy="studio">Copy</button></div>
+    </div></li>
+  </ol>
+</div></section>
+
+<section class="band" id="built-in"><div class="wrap">
+  <div class="head">
+    <p class="meta kicker">Built in</p>
+    <h2 class="display">What every deck gets</h2>
+  </div>
+  <ul class="feats">
+    <li><h3>One file, offline</h3><p>Fonts and images can be inlined, so the deck runs from a USB stick or an email attachment.</p></li>
+    <li><h3>Back is free</h3><p>The whole scene is derived from one step number, so ←, deep links and jumping around always land right.</p></li>
+    <li><h3>Presenter view</h3><p>Notes, the next step and a timer in a second window. Drive it from either one.</p></li>
+    <li><h3>PDF and handouts</h3><p>One page per step at full size, with transitions off so nothing prints halfway.</p></li>
+    <li><h3>Content as data</h3><p>What you say lives in arrays at the top. Adding a milestone is adding an entry.</p></li>
+    <li><h3>Motion that means something</h3><p>Only the current step moves, and every animation has a static version for reduced motion.</p></li>
+    <li><h3>Checked in a browser</h3><p>Claude opens the deck and measures it before calling a visual change done.</p></li>
+    <li><h3>Yours to edit</h3><p>Plain HTML, CSS and JavaScript. No framework to learn, nothing to install to change it.</p></li>
+  </ul>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <span>Stepped presentations. MIT licence. Every example on this page was built with the skill.</span>
+  <a href="https://github.com/jonasster/stepped-presentations">github.com/jonasster/stepped-presentations</a>
+</div></footer>
+
+<script>
+/* Each frame is a real deck. The page drives it through the deck's own message, the same
+   one its presenter view uses, so nothing in the decks is special for this page. */
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+document.querySelectorAll('.screen[data-deck]').forEach(box => {
+  const frame = box.querySelector('iframe'), count = +box.dataset.count;
+  let at = 0, timer = null, visible = false, driven = false;
+  frame.src = box.dataset.deck;
+  const go = i => frame.contentWindow && frame.contentWindow.postMessage({ deck:'show', at:i }, '*');
+  const dwell = i => i === 0 ? 2600 : i === count - 1 ? 3600 : 1700;
+  const tick = () => {
+    at = (at + 1) % count; go(at);
+    timer = setTimeout(tick, dwell(at));
+  };
+  const play = () => { if (!timer && visible && !driven && !reduced) timer = setTimeout(tick, dwell(at)); };
+  const stop = () => { clearTimeout(timer); timer = null; };
+  frame.addEventListener('load', () => { at = 0; go(0); play(); });
+  /* the moment someone clicks into a deck, it is theirs: autoplay stops for good */
+  addEventListener('blur', () => setTimeout(() => {
+    if (document.activeElement === frame) { driven = true; stop(); box.classList.add('driven'); }
+  }));
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; visible ? play() : stop(); },
+                           { threshold:.4 }).observe(box);
+  if (reduced) box.querySelector('.hint').textContent = 'Click it, then use ← →';
+});
+
+document.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+  const text = document.getElementById(b.dataset.copy).textContent;
+  try { await navigator.clipboard.writeText(text); b.textContent = 'Copied'; }
+  catch { b.textContent = 'Select and copy'; }
+  setTimeout(() => b.textContent = 'Copy', 1800);
+});
+</script>
+</body>
+</html>

@@ -227,6 +227,7 @@ Load these when the task needs them, not upfront:
 | `scripts/inline_assets.py` | Making a deck self-contained — embeds images as WebP data URIs |
 | `assets/starter.html` | Starting a new single-file deck: canvas, step machine, sequence, notes, presenter view, print |
 | `assets/gallery.html` | Showing someone the themes and motion styles so they can pick by looking |
+| `examples/` | Four finished decks, one per common spine: `roadmap` (timeline), `flow` (routed connectors and pulses), `decision` (comparison narrowed to a verdict), `journey` (wide road with a print-safe camera). Read the closest one before building a new deck of that shape |
 
 ## Two habits worth keeping
 
