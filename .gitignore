@@ -1,0 +1,9 @@
+# Decks you build with the skill stay on your machine
+decks/
+
+# Local tooling and per-machine config
+.claude/
+
+# Stray build and screenshot output
+*.pdf
+shots*.png

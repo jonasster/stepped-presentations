@@ -90,6 +90,10 @@ prompt rather than a properties panel.
 | `evals/evals.json` | Four scenarios with assertions: a roadmap from scratch, an animated flow diagram, a misalignment bug, and a vague brief that should be questioned before anything is built |
 | `studio/` | The GUI editor, and the write-back engine that parses a deck and edits single literals in place |
 | `docs/STUDIO-PLAN.md` | Why the studio is scoped the way it is, what it deliberately does not do, and what is still open |
+| `docs/copilot-agent-instructions.md` | The same rules condensed into agent instructions for GitHub Copilot, for when Claude Code is not available |
+
+Decks you build while working in this repo go in `decks/`, which is gitignored, so your own
+presentations stay on your machine.
 
 The reference files are loaded on demand rather than upfront, so a small edit does not drag
 in the whole manual.
@@ -142,3 +146,7 @@ changing any image, and use `--clear` to go back to loading from disk.
 `evals/evals.json` holds four prompts with assertions covering a deck built from scratch,
 an animated diagram with branches, a debugging pass on an existing file, and a vague brief where
 the right first move is a short round of questions.
+
+## License
+
+MIT. See `LICENSE`.
