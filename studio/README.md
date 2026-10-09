@@ -37,7 +37,7 @@ layout where the content lives in its own `.js`. The studio finds whichever file
 the content array and edits that one.
 
 Undo is ⌘/Ctrl+Z, save is ⌘/Ctrl+S. If something else writes the file while you have it
-open — Claude, your editor — a notice appears and you can reload from disk.
+open — your coding agent, your editor — a notice appears and you can reload from disk.
 
 ## Building
 

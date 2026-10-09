@@ -4,21 +4,21 @@ A plan for a local GUI that fine-tunes decks produced by this skill. Nothing her
 
 ## 1 · The thesis
 
-Claude is good at the generative work: choosing the spine, writing the render pass, routing
+The coding agent is good at the generative work: choosing the spine, writing the render pass, routing
 connectors, tuning easing. It is slow and expensive at the *last mile* — nudging a card 12px,
 trying four accent colours, fixing a typo, swapping two slides. Those are high-frequency,
 low-semantic-content adjustments where a conversational round-trip costs more than the change.
 
-**The studio owns the last mile. Claude keeps everything upstream of it.**
+**The studio owns the last mile. The agent keeps everything upstream of it.**
 
 This is the line that keeps the project from becoming PowerPoint. If a change requires judgement
 about what the deck *means*, it belongs in a prompt, not a properties panel.
 
 ### Who it is for
 
-1. **You, fine-tuning a deck Claude just built.** Primary.
+1. **You, fine-tuning a deck the agent just built.** Primary.
 2. **The person who owns the words** — SKILL.md already asks "who edits it after you". Today the
-   answer forces a JS-literate editor or another Claude session. Secondary, and the strongest
+   answer forces a JS-literate editor or another agent session. Secondary, and the strongest
    argument for the whole thing.
 3. Someone authoring a deck from scratch in a GUI. **Explicit non-goal.**
 
@@ -43,7 +43,7 @@ and rewrite exactly it, leaving formatting, comments and the surrounding code un
 
 **Approach:** parse the inline `<script>` with an AST (acorn), locate the target node, and apply
 surgical byte-range edits with `magic-string`. Never re-print the whole program — that would
-reformat a file the author (human or Claude) cares about.
+reformat a file the author (human or agent) cares about.
 
 **The contract.** Decks opt in by carrying two inert markers, in the same spirit as the existing
 `/*ASSETS_START*/` convention in `inline_assets.py`:
@@ -121,7 +121,7 @@ inspector must check bounds live rather than letting the presenter find out on a
 - **Free-form dragging of anything.** It fights principle 3 (*content is data; the file draws
   it*) and produces decks that no longer have a coherent layout model. The goal is nudging
   *within* the model, not escaping it.
-- Connector routing, keyframes, easing curves, new scene types, anything structural. Claude's.
+- Connector routing, keyframes, easing curves, new scene types, anything structural. The agent's.
 - Creating a deck from nothing.
 - Cloud, accounts, sharing, collaboration.
 
@@ -130,7 +130,7 @@ inspector must check bounds live rather than letting the presenter find out on a
 engine.md deliberately uses named indices (`const TITLE=0, STORY=1, TIMELINE=2`) because slide
 order changes often. A GUI reorder must rewrite those bindings or it will silently break `next()`
 / `prev()`. Either detect-and-rewrite, or restrict v1 reorder to data-driven steps and leave
-slides to Claude. **Recommend the latter for v1.**
+slides to the agent. **Recommend the latter for v1.**
 
 ## 5 · Shape of the thing
 
@@ -160,7 +160,7 @@ WYSIWYG drifts and you are debugging two renderers. The deck is its own preview.
 ### Stack
 
 Node + Vite for the shell; Preact or Svelte for the inspector; acorn + magic-string for the
-write-back; chokidar to notice Claude editing the same file. Wrap in Tauri later if a
+write-back; chokidar to notice the agent editing the same file. Wrap in Tauri later if a
 double-clickable app is wanted — the architecture does not change.
 
 ### The cheaper v0 worth considering
@@ -181,7 +181,7 @@ round-trip in a fraction of the work, and the write-back engine ports to the CLI
 | **3** | Step reorder **done**; add, remove and speaker notes still open | The deck becomes editable by a non-coder |
 | **4** | Geometry sliders **done** (with an off-canvas guard); position nudging and image drop still open | The "fine-tune" promise |
 | **5** | Present mode: fullscreen, notes on second screen, timer | A second reason to open it |
-| **6** | Claude in the loop: select something, ask for a change, review the diff | The two editors become one workflow |
+| **6** | The agent in the loop: select something, ask for a change, review the diff | The two editors become one workflow |
 | **7** | Packaging — Tauri app, or `npx` | Distribution |
 
 Phases 1–3 are the product. 4–7 are optional and independently valuable; stop anywhere.
@@ -190,7 +190,7 @@ Phases 1–3 are the product. 4–7 are optional and independently valuable; sto
 
 - **Write-back fidelity.** Mitigated by phase 0 and by never re-printing whole files. A corrupted
   deck the night before a talk is the failure that ends the project's credibility.
-- **Two editors, one file.** Studio and Claude will both write. Watch the file, reload on external
+- **Two editors, one file.** Studio and the agent will both write. Watch the file, reload on external
   change, refuse to write over a dirty buffer, and snapshot to git before every write.
 - ~~**Contract drift.**~~ Largely retired by the phase 0 result: discovery-by-convention found
   the data in an unmarked deck. What remains is the *binding* half — `data-sp-item` /

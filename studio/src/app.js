@@ -164,7 +164,7 @@ function flash(msg) {
   clearTimeout(flash.t); flash.t = setTimeout(() => n.hidden = true, 2600);
 }
 
-/* someone else — Claude, an editor — may write the same file while we hold it */
+/* someone else — a coding agent, an editor — may write the same file while we hold it */
 setInterval(async () => {
   if (S.mode !== 'fsa' || !S.dataHandle) return;
   const f = await S.dataHandle.getFile();

@@ -1,8 +1,12 @@
 # stepped-presentations
 
-A Claude Code skill for building interactive HTML presentations: fixed-canvas decks you
-click through, where each key press reveals the next piece and motion loops while you talk
-over it.
+An agent skill for building interactive HTML presentations: fixed-canvas decks you click
+through, where each key press reveals the next piece and motion loops while you talk over it.
+
+It is written to the open [Agent Skills](https://agentskills.io) format (a folder with a
+`SKILL.md`), so it works with any coding agent that reads skills: Claude Code, Codex,
+Cursor, OpenCode, Pi, Antigravity, Gemini CLI, GitHub Copilot and others. Nothing in it
+depends on one agent or one model.
 
 The decks it produces are a single `index.html` you double-click. No build step, no
 framework, no CDN, no network. That constraint exists because these files get opened on a
@@ -14,15 +18,49 @@ has four live example decks, the style gallery, and how to use it.
 
 ## Installing
 
-Clone into your skills directory:
+The quickest way is the [skills CLI](https://skills.sh), which finds the coding agents you
+have installed and puts the skill where each of them looks:
 
 ```bash
-git clone https://github.com/jonasster/stepped-presentations ~/.claude/skills/stepped-presentations
+npx skills add jonasster/stepped-presentations
 ```
 
-Claude picks it up on the next session. The skill also loads on its own when you ask for a
-deck, slides, a talk, a walkthrough, an animated diagram, a roadmap, or anything you say
-you want to "click through" or "show the team".
+Or clone it by hand into your agent's skills folder:
+
+| Agent | Folder |
+|---|---|
+| Codex, Cursor, OpenCode, Pi, and other agents that read the shared location | `~/.agents/skills/` |
+| Claude Code | `~/.claude/skills/` |
+| Antigravity | `~/.gemini/config/skills/` |
+
+```bash
+git clone https://github.com/jonasster/stepped-presentations ~/.agents/skills/stepped-presentations
+```
+
+Each of these also has a per-project folder (for example `.agents/skills/` in the repo) if
+you only want it in one project. Check your agent's docs if it is not listed; the folder is
+the only thing that differs.
+
+Your agent picks it up in its next session, and loads it on its own when you ask for a deck,
+slides, a talk, a walkthrough, an animated diagram, a roadmap, or anything you say you want
+to "click through" or "show the team".
+
+**No skills support?** For a chat assistant with custom instructions instead (a Copilot
+agent, a custom GPT, a Gem), `docs/copilot-agent-instructions.md` is the same method
+condensed to fit an 8,000-character instructions box. Upload the `references/` files and
+`assets/starter.html` as its knowledge.
+
+### What the agent needs
+
+The skill works best when the agent can do three things. All of them are common, none of
+them are required.
+
+- **Write files and run a shell**, to create the deck and run `scripts/embed_fonts.py`.
+- **Open a page in a browser**, through a browser tool or a preview pane, to check the deck
+  the way `references/verification.md` describes. Without one, the agent verifies by reading
+  and measuring, and should say that it did.
+- **Run Python 3**, for the two helper scripts. They use only the standard library, except
+  `inline_assets.py`, which needs Pillow.
 
 ## Using it
 
@@ -107,7 +145,7 @@ Then open http://localhost:5180/studio.html. It needs Chrome or Edge, and it nee
 served rather than double-clicked, because the File System Access API does not work from a
 `file://` page. `studio/README.md` covers the rest, including what it does not do yet.
 
-Everything above the last mile stays with Claude. The spine of a deck, the render pass,
+Everything above the last mile stays with your agent. The spine of a deck, the render pass,
 connector routing and easing are decisions about what the deck means, and those belong in a
 prompt rather than a properties panel.
 
@@ -115,7 +153,7 @@ prompt rather than a properties panel.
 
 | Path | What it holds |
 |---|---|
-| `SKILL.md` | The entry point Claude reads first: the five ideas the format rests on, how it settles the brief before building, single-file vs split, build order |
+| `SKILL.md` | The entry point the agent reads first: the five ideas the format rests on, how it settles the brief before building, single-file vs split, build order |
 | `references/engine.md` | The stage, the step machine, camera, deep links, data to DOM |
 | `references/motion.md` | Reveals, ambient loops, travelling pulses, connectors, reduced motion |
 | `references/themes.md` | The themes and motion styles, when to use each, the token schema, and deriving a theme from a reference |
@@ -133,7 +171,7 @@ prompt rather than a properties panel.
 | `evals/evals.json` | Seven scenarios with assertions: a roadmap from scratch, an animated flow diagram, a misalignment bug, a vague brief that should be questioned first, a named theme and motion, a theme matched to a design system, and adding notes and a PDF to an existing deck. Input files are in `evals/inputs/` |
 | `studio/` | The GUI editor, and the write-back engine that parses a deck and edits single literals in place |
 | `docs/STUDIO-PLAN.md` | Why the studio is scoped the way it is, what it deliberately does not do, and what is still open |
-| `docs/copilot-agent-instructions.md` | The same rules condensed into agent instructions for GitHub Copilot, for when Claude Code is not available |
+| `docs/copilot-agent-instructions.md` | The same method condensed into custom instructions, for chat assistants that do not read skills |
 
 Decks you build while working in this repo go in `decks/`, which is gitignored, so your own
 presentations stay on your machine.

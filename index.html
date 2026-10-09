@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Stepped presentations: a Claude Code skill</title>
-<meta name="description" content="A Claude Code skill for building interactive HTML presentations you click through. One file, no build, no network: it runs from a double-click.">
+<title>Stepped presentations: an agent skill</title>
+<meta name="description" content="An agent skill for building interactive HTML presentations you click through. Works with Claude Code, Codex, Cursor, OpenCode, Pi, Antigravity and any agent that reads SKILL.md. One file, no build, no network.">
 <link rel="stylesheet" href="assets/fonts/fonts.css">
 <style>
 /* The landing page wears the House theme, so it looks like what the skill makes. */
@@ -149,6 +149,16 @@ section.band{padding:clamp(56px,8vw,96px) 0;border-top:1px solid var(--line)}
 @media (max-width:900px){.feats{grid-template-columns:1fr 1fr}}
 @media (max-width:520px){.feats{grid-template-columns:1fr}}
 
+/* which agents, and where they look */
+.works{margin-top:28px;font-size:15px;line-height:1.7;color:var(--ink-3);max-width:34em}
+.works b{font-weight:600;color:var(--ink-2)}
+.works a{color:var(--accent);text-underline-offset:3px}
+.where{margin-top:14px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 20px;
+       font-size:15px;color:var(--ink-2);max-width:40em}
+.where code{font-size:14px;color:var(--ink);overflow-wrap:anywhere}
+.aside{font-size:15px}
+.aside a{color:var(--accent);text-underline-offset:3px}
+
 /* footer */
 footer{padding:48px 0 64px;border-top:1px solid var(--line);font-size:15px;color:var(--ink-3)}
 footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-between}
@@ -169,9 +179,9 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
 <main>
 <section class="hero"><div class="wrap">
   <div>
-    <p class="meta kicker">A skill for Claude Code</p>
+    <p class="meta kicker">An agent skill, for any coding agent</p>
     <h1 class="display">Decks you <em>click</em> through</h1>
-    <p class="lede">Describe a talk and Claude builds it as one HTML file: a fixed stage where
+    <p class="lede">Describe a talk to your coding agent and it builds it as one HTML file: a fixed stage where
       every press reveals the next piece, and a quiet loop marks whatever you are talking
       about. No build, no framework, no network. It runs from a double-click on a borrowed
       laptop, ten minutes before you speak.</p>
@@ -179,6 +189,9 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
       <a class="btn solid" href="#use">Install the skill</a>
       <a class="btn ghost" href="#examples">See what it makes</a>
     </div>
+    <p class="works">Works with <b>Claude Code</b>, <b>Codex</b>, <b>Cursor</b>, <b>OpenCode</b>,
+      <b>Pi</b>, <b>Antigravity</b>, <b>Gemini CLI</b>, <b>GitHub Copilot</b> and any agent
+      that reads the open <a href="https://agentskills.io">Agent Skills</a> format.</p>
   </div>
   <div>
     <div class="screen" data-deck="examples/roadmap/index.html" data-count="8" data-hero>
@@ -282,7 +295,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
     <p class="meta kicker">Themes and motion</p>
     <h2 class="display">Pick a look, pick a pace</h2>
     <p>How a deck looks and how it moves are chosen separately, so any theme works with any
-      motion style. Or hand Claude a link, a brand PDF or a path into a repo, and it derives a
+      motion style. Or hand your agent a link, a brand PDF or a path into a repo, and it derives a
       theme from that, fixing any colour too faint to read on a projector.</p>
   </div>
   <div class="styles">
@@ -313,15 +326,28 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
   <ol class="steps">
     <li><div>
       <h3>Install the skill</h3>
-      <p>Clone it into your Claude Code skills folder. Claude picks it up in the next session,
-        and loads it whenever you ask for something you will click through or present.</p>
-      <div class="cmd"><pre id="install">git clone https://github.com/jonasster/stepped-presentations ~/.claude/skills/stepped-presentations</pre>
+      <p>One command finds the coding agents you have and puts the skill where each of them
+        looks. Your agent picks it up in its next session, and loads it whenever you ask for
+        something you will click through or present.</p>
+      <div class="cmd"><pre id="install">npx skills add jonasster/stepped-presentations</pre>
         <button type="button" data-copy="install">Copy</button></div>
+      <p>Or clone it into your agent's skills folder yourself. It is the same folder for
+        every agent; only the place differs.</p>
+      <div class="where">
+        <span>Codex, Cursor, OpenCode, Pi</span><code>~/.agents/skills/</code>
+        <span>Claude Code</span><code>~/.claude/skills/</code>
+        <span>Antigravity</span><code>~/.gemini/config/skills/</code>
+      </div>
+      <div class="cmd"><pre id="clone">git clone https://github.com/jonasster/stepped-presentations ~/.agents/skills/stepped-presentations</pre>
+        <button type="button" data-copy="clone">Copy</button></div>
+      <p class="aside">Using a chat assistant that takes custom instructions instead of skills?
+        <a href="https://github.com/jonasster/stepped-presentations/blob/main/docs/copilot-agent-instructions.md">This condensed version</a>
+        fits in one instructions box.</p>
     </div></li>
     <li><div>
       <h3>Ask for the deck</h3>
       <p>Say what it is for, when you present, and what goes in it. If that is all there,
-        Claude builds the whole deck and lists the choices it made for you. If the content is
+        the agent builds the whole deck and lists the choices it made for you. If the content is
         not settled yet, it asks one short round of questions, each with a default, then stops
         at a few checkpoints so you can steer.</p>
       <p class="prompt">“I present our 2026 roadmap at the all-hands next week. Six milestones,
@@ -364,7 +390,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 32px;justify-content:space-bet
     <li><h3>PDF and handouts</h3><p>One page per step at full size, with transitions off so nothing prints halfway.</p></li>
     <li><h3>Content as data</h3><p>What you say lives in arrays at the top. Adding a milestone is adding an entry.</p></li>
     <li><h3>Motion that means something</h3><p>Only the current step moves, and every animation has a static version for reduced motion.</p></li>
-    <li><h3>Checked in a browser</h3><p>Claude opens the deck and measures it before calling a visual change done.</p></li>
+    <li><h3>Checked in a browser</h3><p>Where the agent has a browser, it opens the deck and measures it before calling a visual change done.</p></li>
     <li><h3>Yours to edit</h3><p>Plain HTML, CSS and JavaScript. No framework to learn, nothing to install to change it.</p></li>
   </ul>
 </div></section>
