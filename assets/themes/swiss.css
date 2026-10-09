@@ -1,0 +1,32 @@
+/* Swiss: white, black, one red. A tight heavy grotesk, square corners and markers, strong
+   rules. Confident and blunt; pitches, strategy, anything that should feel decided.
+   Palette values are dark enough to pass 4.5:1 as text on --paper. */
+:root{
+  --theme:swiss;
+  --paper:#ffffff;
+  --ink:#111111;
+  --ink-2:#474747;
+  --ink-3:#5c5c5c;
+  --line:#e2e2e2;
+  --muted:#cfcfcf;
+  --outside:#111111;
+  --accent:#d0021b;
+  --c1:#d0021b;
+  --c2:#111111;
+  --c3:#0050b3;
+  --c4:#5c5c5c;
+  --c5:#a33c00;
+  --fill-mix:8%;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --display-weight:800;
+  --display-case:none;
+  --display-tracking:-.035em;
+  --display-leading:.94;
+  --sans:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,Consolas,monospace;
+  --label-case:uppercase;
+  --label-tracking:.12em;
+  --radius:0px;
+  --marker-radius:0%;
+  --rule:2px;
+}

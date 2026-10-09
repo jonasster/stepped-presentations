@@ -1,0 +1,19 @@
+/* Calm: soft fades with a small rise, no overshoot, ambient loops barely there.
+   Boards, serious subjects, long talks where nothing should compete with the speaker. */
+:root{
+  --motion:calm;
+  --ease:cubic-bezier(.33,0,.2,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --t-reveal:.6s;
+  --t-fade:.5s;
+  --stagger:.12s;
+  --rise:10px;
+  --travel:0;
+  --from-scale:1;
+  --wipe-from:0%;
+  --title-anim:none;
+  --ambient-opacity:.10;
+  --ambient-scale:1.5;
+  --ambient-period:5.2s;
+  --camera-t:1.2s;
+}

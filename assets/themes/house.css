@@ -1,0 +1,32 @@
+/* House: documentary and confident. Condensed uppercase display, mono for anything that
+   is data rather than sentence, cool paper, indigo ink.
+   Palette values are dark enough to pass 4.5:1 as text on --paper. */
+:root{
+  --theme:house;
+  --paper:#eff1f5;
+  --ink:#211a52;
+  --ink-2:#4f5466;
+  --ink-3:#62626b;
+  --line:#e2e5ec;
+  --muted:#ccd0dc;
+  --outside:#12121a;
+  --accent:#4a2fe0;
+  --c1:#1e1b4b;
+  --c2:#a14f09;
+  --c3:#0b6d82;
+  --c4:#0b7a54;
+  --c5:#9d2a5c;
+  --fill-mix:12%;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --display-weight:800;
+  --display-case:uppercase;
+  --display-tracking:.005em;
+  --display-leading:1;
+  --sans:"Geist","Segoe UI",system-ui,sans-serif;
+  --mono:"Geist Mono",ui-monospace,Consolas,monospace;
+  --label-case:uppercase;
+  --label-tracking:.2em;
+  --radius:12px;
+  --marker-radius:50%;
+  --rule:1px;
+}

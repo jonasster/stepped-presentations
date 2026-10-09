@@ -1,0 +1,32 @@
+/* Editorial: a magazine feature. Warm paper, a soft serif display in sentence case, serif
+   prose, one deep accent. For storytelling, talks, anything read as an argument.
+   Palette values are dark enough to pass 4.5:1 as text on --paper. */
+:root{
+  --theme:editorial;
+  --paper:#f6f1e7;
+  --ink:#1f1a14;
+  --ink-2:#574e44;
+  --ink-3:#6a6157;
+  --line:#e4dccd;
+  --muted:#d3c9b6;
+  --outside:#1b1813;
+  --accent:#8a2c1d;
+  --c1:#8a2c1d;
+  --c2:#2d4868;
+  --c3:#4f5c22;
+  --c4:#6e3f7f;
+  --c5:#8a5a12;
+  --fill-mix:10%;
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --display-weight:600;
+  --display-case:none;
+  --display-tracking:-.015em;
+  --display-leading:1.04;
+  --sans:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --mono:"Geist Mono",ui-monospace,Consolas,monospace;
+  --label-case:uppercase;
+  --label-tracking:.16em;
+  --radius:2px;
+  --marker-radius:50%;
+  --rule:1px;
+}

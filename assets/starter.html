@@ -4,31 +4,72 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Deck</title>
-<!-- Swap for self-hosted woff2 before this leaves your machine — see house-style.md -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@500;700&display=swap" rel="stylesheet">
+<!-- Self-hosted faces. scripts/embed_fonts.py copies them next to the deck, or inlines
+     them so the file travels alone. Never a font CDN: see house-style.md -->
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
+/* One token block. The theme half comes from assets/themes, the motion half from
+   assets/motion: swap either by pasting a different file's body over it. The studio
+   edits these values in place, so keep comments in here free of curly braces. */
 :root{
+  /* theme: house */
+  --theme:house;
   --paper:#eff1f5;
   --ink:#211a52;
-  --ink-2:#5b6070;
-  --ink-3:#6e6e77;
+  --ink-2:#4f5466;
+  --ink-3:#62626b;
   --line:#e2e5ec;
+  --muted:#ccd0dc;
+  --outside:#12121a;
   --accent:#4a2fe0;
+  --c1:#1e1b4b;
+  --c2:#a14f09;
+  --c3:#0b6d82;
+  --c4:#0b7a54;
+  --c5:#9d2a5c;
+  --fill-mix:12%;
   --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --display-weight:800;
+  --display-case:uppercase;
+  --display-tracking:.005em;
+  --display-leading:1;
   --sans:"Geist","Segoe UI",system-ui,sans-serif;
-  --mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-  --ease:cubic-bezier(.2,.75,.25,1);
+  --mono:"Geist Mono",ui-monospace,Consolas,monospace;
+  --label-case:uppercase;
+  --label-tracking:.2em;
+  --radius:12px;
+  --marker-radius:50%;
+  --rule:1px;
+  /* motion: calm */
+  --motion:calm;
+  --ease:cubic-bezier(.33,0,.2,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --t-reveal:.6s;
+  --t-fade:.5s;
+  --stagger:.12s;
+  --rise:10px;
+  --travel:0;
+  --from-scale:1;
+  --wipe-from:0%;
+  --title-anim:none;
+  --ambient-opacity:.10;
+  --ambient-scale:1.5;
+  --ambient-period:5.2s;
+  --camera-t:1.2s;
 }
 *,*::before,*::after{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:#12121a;color:var(--ink);font-family:var(--sans);overflow:hidden}
+body{margin:0;background:var(--outside);color:var(--ink);font-family:var(--sans);overflow:hidden}
 /* not tidiness: a UA 1em margin offsets absolutely-positioned elements from
    where top/bottom says, which makes every number in the CSS a lie */
 p,h1,h2,h3,ul,ol,figure{margin:0}
 a{color:inherit}
 img{display:block;max-width:100%}
+.display{font-family:var(--display);font-weight:var(--display-weight);
+  text-transform:var(--display-case);letter-spacing:var(--display-tracking);
+  line-height:var(--display-leading)}
+.meta{font-family:var(--mono);font-weight:500;text-transform:var(--label-case);
+  letter-spacing:var(--label-tracking)}
 
 /* ---- the stage: one logical canvas, scaled once ---- */
 #viewport{position:fixed;inset:0}
@@ -36,78 +77,125 @@ img{display:block;max-width:100%}
        background:var(--paper);overflow:hidden;transform-origin:center}
 
 .slide{position:absolute;inset:0;opacity:0;visibility:hidden;
-       transition:opacity .45s var(--ease),visibility .45s}
+       transition:opacity var(--t-fade) var(--ease),visibility var(--t-fade)}
 .slide.is-active{opacity:1;visibility:visible}
 
 /* ---- title ---- */
-#s1{padding:0 120px;display:flex;flex-direction:column;justify-content:center}
-.kicker{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-weight:700;
-        font-size:21px;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-3)}
-.kicker::before{content:"";width:15px;height:15px;border-radius:50%;background:var(--accent)}
-#s1 h1{margin-top:26px;font-family:var(--display);font-weight:800;font-size:112px;
-       line-height:1;text-transform:uppercase;max-width:16ch}
-#s1 .lede{margin-top:26px;max-width:60ch;font-size:21px;line-height:1.55;color:var(--ink-2)}
+#title{padding:0 120px;display:flex;flex-direction:column;justify-content:center}
+.kicker{display:flex;align-items:center;gap:14px;font-weight:700;font-size:21px;
+        letter-spacing:.34em;color:var(--ink-3)}
+.kicker::before{content:"";width:15px;height:15px;border-radius:var(--marker-radius);
+                background:var(--accent)}
+#title h1{margin-top:26px;font-size:112px;max-width:16ch}
+#title .lede{margin-top:26px;max-width:60ch;font-size:21px;line-height:1.55;color:var(--ink-2)}
 
 /* ---- the stepped scene ---- */
 #scene{position:absolute;inset:0}
-/* a dotted spine rather than a ruled line — the markers are the structure */
+/* a dotted spine rather than a ruled line: the markers are the structure */
 .axis{position:absolute;left:150px;right:150px;top:540px;display:flex;
       justify-content:space-between;align-items:center;transform:translateY(-50%)}
-.axis s{width:10px;height:10px;border-radius:50%;background:#ccd0dc;
+.axis s{width:10px;height:10px;border-radius:var(--marker-radius);background:var(--muted);
         text-decoration:none;flex:none}
 
-.knot{position:absolute;top:540px;width:44px;height:44px;border-radius:50%;background:var(--c);
-      transform:translate(-50%,-50%) scale(.4);opacity:0;
-      transition:transform .45s var(--ease),opacity .3s;z-index:3}
+/* Every reveal composes its base transform from tokens, so a motion style can add travel,
+   rise or scale without ever dropping the centring translate. See motion.md. */
+.knot{position:absolute;top:540px;width:44px;height:44px;border-radius:var(--marker-radius);
+      background:var(--c);transform:translate(-50%,-50%) scale(.4);opacity:0;z-index:3;
+      transition:transform var(--t-reveal) var(--ease),opacity var(--t-fade) var(--ease)}
 .knot.on{transform:translate(-50%,-50%) scale(1);opacity:1}
-/* the base transform is repeated in every frame — a keyframe that only scales
-   would replace it and knock the marker off its x. See motion.md. */
-.knot.on::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--c);
-                animation:halo 4.2s var(--ease) infinite;animation-delay:var(--hd,0s)}
-@keyframes halo{0%{transform:scale(1);opacity:.18}70%,100%{transform:scale(1.8);opacity:0}}
+/* only the current step breathes */
+.knot.now::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--c);
+                 animation:halo var(--ambient-period) var(--ease-out) infinite}
+@keyframes halo{0%{transform:scale(1);opacity:var(--ambient-opacity)}
+                70%,100%{transform:scale(var(--ambient-scale));opacity:0}}
 
-.label{position:absolute;top:596px;transform:translateX(-50%);font-family:var(--mono);
-       font-weight:500;font-size:19px;letter-spacing:.2em;text-transform:uppercase;
-       color:#a7abba;white-space:nowrap;opacity:0;transition:opacity .4s,color .4s}
-.label.on{opacity:1;color:var(--c)}
+.label{position:absolute;top:596px;transform:translate(-50%,var(--rise));font-size:19px;
+       color:var(--ink-3);white-space:nowrap;opacity:0;clip-path:inset(0 var(--wipe-from) 0 0);
+       transition:opacity var(--t-fade) var(--ease),transform var(--t-reveal) var(--ease),
+                  clip-path var(--t-reveal) var(--ease),color var(--t-fade)}
+.label.on{opacity:1;color:var(--c);transform:translate(-50%,0);clip-path:inset(0 0 0 0);
+          transition-delay:var(--stagger)}
 
-.card{position:absolute;width:280px;padding:22px 26px;border-radius:12px;text-align:center;
-      background:color-mix(in srgb,var(--c) 12%,var(--paper));
-      opacity:0;transform:translate(calc(-50% + var(--sx,0px)),var(--sy,0px)) scale(.5);
-      transition:opacity .45s var(--ease),transform .62s var(--ease);z-index:2}
-.card.on{opacity:1;transform:translate(-50%,0) scale(1)}
-.card h3{font-family:var(--display);font-weight:800;font-size:40px;line-height:1;
-         text-transform:uppercase;color:var(--c)}
-.card p{margin-top:10px;font-family:var(--mono);font-weight:500;font-size:15px;
-        line-height:1.5;color:var(--ink-2)}
+.stem{position:absolute;width:var(--rule);background:var(--c);opacity:.4;
+      transform:translateX(-50%) scaleY(0);transform-origin:bottom;
+      transition:transform var(--t-reveal) var(--ease)}
+.stem.on{transform:translateX(-50%) scaleY(1);transition-delay:var(--stagger)}
 
+.card{position:absolute;width:280px;padding:22px 26px;border-radius:var(--radius);
+      text-align:center;background:color-mix(in srgb,var(--c) var(--fill-mix),var(--paper));
+      opacity:0;z-index:2;clip-path:inset(0 var(--wipe-from) 0 0);
+      transform:translate(calc(-50% + var(--sx,0px) * var(--travel)),
+                          calc(var(--sy,0px) * var(--travel) + var(--rise)))
+                scale(var(--from-scale));
+      transition:opacity var(--t-fade) var(--ease),transform var(--t-reveal) var(--ease),
+                 clip-path var(--t-reveal) var(--ease)}
+.card.on{opacity:1;transform:translate(-50%,0) scale(1);clip-path:inset(0 0 0 0);
+         transition-delay:calc(var(--stagger) * 2)}
+.card h3{font-size:40px;color:var(--c)}
+/* longhands: in the shorthand, a --title-anim of none is read as the fill mode */
+.card.on h3{animation-name:var(--title-anim);animation-duration:var(--t-reveal);
+            animation-timing-function:steps(var(--chars,12));animation-fill-mode:both;
+            animation-delay:calc(var(--stagger) * 2)}
+@keyframes type{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.card p{margin-top:10px;font-family:var(--mono);font-size:15px;line-height:1.5;color:var(--ink-2)}
+
+/* ---- presenter chrome: on hover, readable over any theme ---- */
 #progress{position:fixed;left:0;bottom:0;height:2px;background:var(--accent);width:0;
-          transition:width .4s var(--ease);z-index:50}
+          transition:width var(--t-fade) var(--ease);z-index:50}
 #chrome{position:fixed;left:0;right:0;bottom:16px;display:flex;justify-content:center;gap:9px;
         opacity:0;transition:opacity .25s;z-index:50}
-#viewport:hover #chrome{opacity:1}
-#chrome button{font-family:var(--mono);font-size:12px;color:#c8cad6;cursor:pointer;
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
-  border-radius:6px;padding:7px 13px}
+#viewport:hover~#chrome,#chrome:hover{opacity:1}
+#chrome button{font-family:var(--mono);font-size:12px;color:var(--ink-2);cursor:pointer;
+  background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:7px 13px}
+
+/* ---- ?still: a frozen position, used by the presenter previews and print ---- */
+.still *,.still *::before,.still *::after{transition:none!important;animation:none!important}
+.still #chrome,.still #progress{display:none}
+
+/* ---- ?presenter: notes, next step, timer. Drives the audience window ---- */
+#presenter{display:none}
+.presenter body{overflow:auto;background:#16171c;color:#e9e8e4}
+.presenter #viewport,.presenter #chrome,.presenter #progress{display:none}
+.presenter #presenter{display:grid;grid-template-columns:3fr 2fr;gap:20px;padding:20px;
+  min-height:100vh;font-family:system-ui,sans-serif}
+#presenter iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:6px;background:#000}
+#presenter .side{display:flex;flex-direction:column;gap:14px}
+#presenter .tag{font:600 11px/1 ui-monospace,monospace;letter-spacing:.2em;
+  text-transform:uppercase;color:#8d8c88;margin-bottom:6px}
+#pNotes{font-size:22px;line-height:1.5;white-space:pre-wrap;margin-top:6px}
+#pClock{display:flex;gap:18px;font:600 30px/1 ui-monospace,monospace}
+#pClock span{cursor:pointer}
+
+/* ---- ?print: one page per position, then the browser's Save as PDF ---- */
+#print{display:none}
+.print body{overflow:visible;background:#fff}
+.print #viewport,.print #chrome,.print #progress{display:none}
+.print #print{display:block}
+.page{position:relative;width:1920px;height:1080px;overflow:hidden;break-after:page}
+.page.notes{height:1440px}
+.page #stage{position:relative;left:0;top:0;transform:none!important}
+.page .note{position:absolute;left:0;right:0;top:1080px;bottom:0;padding:44px 120px;
+  font:24px/1.5 var(--sans);color:#222;white-space:pre-wrap;border-top:1px solid #ddd}
 
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition-duration:.001s!important}
-  /* the halo becomes a standing ring — an indicator that disappears is a bug */
-  .knot.on::after{opacity:.2;transform:scale(1.4)}
+  /* the halo becomes a standing ring: an indicator that disappears is a bug */
+  .knot.now::after{content:"";position:absolute;inset:-9px;border-radius:inherit;
+                   border:2px solid var(--c);background:none;opacity:.5}
 }
 </style>
 </head>
 <body>
 <div id="viewport"><div id="stage">
 
-  <section class="slide is-active" id="s1">
-    <p class="kicker">Work in progress</p>
-    <h1>A deck you click through</h1>
+  <section class="slide is-active" id="title">
+    <p class="kicker meta">Work in progress</p>
+    <h1 class="display">A deck you click through</h1>
     <p class="lede">Replace this, then press → to walk the scene. The step machine and the
       canvas already work; build on top of them.</p>
   </section>
 
-  <section class="slide" id="s2"><div id="scene"></div></section>
+  <section class="slide" id="s-scene"><div id="scene"></div></section>
 
 </div></div>
 
@@ -116,21 +204,45 @@ img{display:block;max-width:100%}
   <button id="bNext" type="button">next →</button>
   <button id="bReset" type="button">reset (R)</button>
   <button id="bAll" type="button">show all (F)</button>
+  <button id="bNotes" type="button">presenter (P)</button>
 </div>
 <div id="progress"></div>
 
+<div id="presenter">
+  <div><p class="tag">Now</p><iframe id="pNow" title="Current"></iframe></div>
+  <div class="side">
+    <div id="pClock"><span id="pElapsed" title="Click to restart">00:00</span><span id="pTime"></span>
+      <span id="pCount"></span></div>
+    <div><p class="tag">Next</p><iframe id="pNext" title="Next"></iframe></div>
+    <div><p class="tag">Notes</p><div id="pNotes"></div></div>
+  </div>
+</div>
+<div id="print"></div>
+
 <script>
 /* ── content: everything on screen comes from here ───────────────────────── */
+const TITLE_NOTES = "Say who you are and what the next ten minutes are for.";
 const ITEMS = [
-  { id:"one",   label:"January",  name:"First",  desc:"What this one is",  color:"#1e1b4b" },
-  { id:"two",   label:"March",    name:"Second", desc:"What this one is",  color:"#c0620e" },
-  { id:"three", label:"June",     name:"Third",  desc:"What this one is",  color:"#0e7c93" },
-  { id:"four",  label:"October",  name:"Fourth", desc:"What this one is",  color:"#0e8a5f" }
+  { id:"one",   label:"January",  name:"First",  desc:"What this one is", color:"var(--c1)",
+    notes:"What happened in January, and why it mattered." },
+  { id:"two",   label:"March",    name:"Second", desc:"What this one is", color:"var(--c2)",
+    notes:"" },
+  { id:"three", label:"June",     name:"Third",  desc:"What this one is", color:"var(--c3)",
+    notes:"" },
+  { id:"four",  label:"October",  name:"Fourth", desc:"What this one is", color:"var(--c4)",
+    notes:"" }
 ];
 
 /* ── geometry: named constants, so the reasoning survives ────────────────── */
 const X0 = 340, COL = 380, DOTY = 540, CARD_TOP = 300;
+const KNOT_R = 22;                     // the stem stops at the marker's edge, not its centre
 const xOf = i => X0 + i * COL;
+
+/* ── modes: ?still freezes a position, ?presenter and ?print build their own views ─ */
+const Q = new URLSearchParams(location.search);
+const MODE = Q.has('print') ? 'print' : Q.has('presenter') ? 'presenter' : Q.has('still') ? 'still' : 'deck';
+if (MODE !== 'deck') document.documentElement.classList.add(MODE === 'print' ? 'still' : MODE, MODE);
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ── build once ──────────────────────────────────────────────────────────── */
 const stage = document.getElementById('stage');
@@ -144,47 +256,123 @@ scene.innerHTML = '<div class="axis">' +
 ITEMS.forEach((p, i) => {
   const x = xOf(i);
   scene.insertAdjacentHTML('beforeend',
-    `<div class="knot" data-i="${i}" style="left:${x}px;--c:${p.color};--hd:${i * .3}s"></div>
-     <div class="label" data-i="${i}" style="left:${x}px;--c:${p.color}">${p.label}</div>
+    `<div class="knot" data-i="${i}" style="left:${x}px;--c:${p.color}"></div>
+     <div class="stem" data-i="${i}" style="left:${x}px;--c:${p.color}"></div>
+     <div class="label meta" data-i="${i}" style="left:${x}px;--c:${p.color}">${p.label}</div>
      <div class="card" data-i="${i}" style="left:${x}px;top:${CARD_TOP}px;--c:${p.color}">
-       <h3>${p.name}</h3><p>${p.desc}</p></div>`);
+       <h3 class="display" style="--chars:${p.name.length}">${p.name}</h3><p>${p.desc}</p></div>`);
 });
 
-/* each card flies out of its own marker, so the reveal says "this came from here" */
-document.querySelectorAll('.card').forEach(el => {
-  el.style.setProperty('--sy', (DOTY - CARD_TOP - el.offsetHeight / 2) + 'px');
-});
+/* text-derived geometry: rerun once the real faces are in */
+function layout(){
+  scene.querySelectorAll('.card').forEach(el => {
+    const i = el.dataset.i, bottom = CARD_TOP + el.offsetHeight;
+    // each card can fly out of its own marker, so the reveal says "this came from here"
+    el.style.setProperty('--sy', (DOTY - CARD_TOP - el.offsetHeight / 2) + 'px');
+    const stem = scene.querySelector(`.stem[data-i="${i}"]`);
+    stem.style.top = bottom + 'px';
+    stem.style.height = (DOTY - KNOT_R - bottom) + 'px';
+  });
+}
+layout();
 
 /* ── the step machine: everything derived from `step`, never incremented ─── */
-let step = -1, cur = 0;
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
+let step = -1;
 function applyStep(n){
   step = Math.max(-1, Math.min(n, ITEMS.length - 1));
-  scene.querySelectorAll('.knot,.label,.card').forEach(el =>
+  scene.querySelectorAll('.knot,.stem,.label,.card').forEach(el =>
     el.classList.toggle('on', +el.dataset.i <= step));
-  document.getElementById('progress').style.width =
-    ((step + 1) / ITEMS.length * 100) + '%';
+  scene.querySelectorAll('.knot').forEach(el => el.classList.toggle('now', +el.dataset.i === step));
 }
 
-function goTo(i){
-  cur = Math.max(0, Math.min(i, slides.length - 1));
-  slides.forEach((s, k) => s.classList.toggle('is-active', k === cur));
-  if (cur === 1) applyStep(reduced ? ITEMS.length - 1 : -1);
-}
-function next(){ cur === 0 ? goTo(1) : (step < ITEMS.length - 1 && applyStep(step + 1)); }
-function prev(){ (cur === 1 && step > -1) ? applyStep(step - 1) : (cur > 0 && goTo(cur - 1)); }
+/* ── the sequence: every position in the deck, in presenting order ───────────
+   The presenter view, print and deep links all speak in positions, so they work
+   on any deck that can list its positions and show one. */
+const SCENE = 1;
+const SEQ = [{ slide:0, step:-1, notes:TITLE_NOTES }];
+for (let k = reduced ? ITEMS.length - 1 : -1; k < ITEMS.length; k++)
+  SEQ.push({ slide:SCENE, step:k, notes: k < 0 ? "" : ITEMS[k].notes });
 
+let at = 0, peer = null;
+function show(i, fromPeer){
+  at = Math.max(0, Math.min(i, SEQ.length - 1));
+  const p = SEQ[at];
+  slides.forEach((s, k) => s.classList.toggle('is-active', k === p.slide));
+  applyStep(p.slide === SCENE ? p.step : -1);
+  document.getElementById('progress').style.width = (at / (SEQ.length - 1) * 100) + '%';
+  if (MODE === 'deck') history.replaceState(null, '', '#' + at);
+  if (MODE === 'presenter') renderPresenter();
+  if (!fromPeer && peer && !peer.closed) peer.postMessage({ deck:'show', at }, '*');
+}
+const first = () => SEQ.findIndex(p => p.slide === SEQ[at].slide);
+const last  = () => SEQ.map(p => p.slide).lastIndexOf(SEQ[at].slide);
+
+addEventListener('message', e => {
+  if (!e.data || e.data.deck !== 'show') return;
+  if (e.source !== parent) peer = e.source;     // a reopened presenter finds us again
+  show(e.data.at, true);
+});
+
+/* ── keys and buttons ────────────────────────────────────────────────────── */
+function openPresenter(){
+  peer = open(location.pathname + '?presenter#' + at, 'deck-presenter', 'popup,width=1280,height=760');
+}
+function openPrint(){ open(location.pathname + '?print' + (SEQ.some(p => p.notes) ? '=notes' : '')); }
 addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
-  if (e.key === 'ArrowRight' || e.key === ' '){ e.preventDefault(); next(); }
-  if (e.key === 'ArrowLeft'){ e.preventDefault(); prev(); }
-  if (e.key === 'r' || e.key === 'R') applyStep(-1);
-  if (e.key === 'f' || e.key === 'F') applyStep(ITEMS.length - 1);
+  const k = e.key;
+  if (k === 'ArrowRight' || k === ' ' || k === 'PageDown'){ e.preventDefault(); show(at + 1); }
+  if (k === 'ArrowLeft' || k === 'PageUp'){ e.preventDefault(); show(at - 1); }
+  if (k === 'r' || k === 'R') show(first());
+  if (k === 'f' || k === 'F') show(last());
+  if (k === 'p' && MODE === 'deck') openPresenter();
+  if (k === 'P' && MODE === 'deck') openPrint();
 });
-bNext.onclick = next; bPrev.onclick = prev;
-bReset.onclick = () => { goTo(1); applyStep(-1); };
-bAll.onclick = () => { goTo(1); applyStep(ITEMS.length - 1); };
+bNext.onclick = () => show(at + 1); bPrev.onclick = () => show(at - 1);
+bReset.onclick = () => show(first()); bAll.onclick = () => show(last());
+bNotes.onclick = openPresenter;
+
+/* ── presenter view ──────────────────────────────────────────────────────── */
+let t0 = Date.now();
+function renderPresenter(){
+  const post = (f, i) => f.contentWindow && f.contentWindow.postMessage({ deck:'show', at:i }, '*');
+  post(pNow, at); post(pNext, Math.min(at + 1, SEQ.length - 1));
+  pNext.style.opacity = at + 1 < SEQ.length ? 1 : .25;
+  pNotes.textContent = SEQ[at].notes || '—';
+  pCount.textContent = (at + 1) + ' / ' + SEQ.length;
+}
+if (MODE === 'presenter'){
+  peer = opener;
+  const still = location.pathname + '?still#';
+  pNow.src = still + at; pNext.src = still + (at + 1);
+  pNow.onload = pNext.onload = renderPresenter;
+  pElapsed.onclick = () => t0 = Date.now();
+  const tick = () => {
+    const s = Math.floor((Date.now() - t0) / 1000);
+    pElapsed.textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+    pTime.textContent = new Date().toTimeString().slice(0, 5);
+  };
+  tick(); setInterval(tick, 1000);
+}
+
+/* ── print: freeze each position, clone the stage onto its own page ──────── */
+function buildPrint(){
+  const withNotes = Q.get('print') === 'notes';
+  const css = document.createElement('style');
+  css.textContent = `@page{size:1920px ${withNotes ? 1440 : 1080}px;margin:0}`;
+  document.head.append(css);
+  const out = document.getElementById('print');
+  SEQ.forEach((p, i) => {
+    show(i, true);
+    const page = document.createElement('div');
+    page.className = 'page' + (withNotes ? ' notes' : '');
+    page.append(stage.cloneNode(true));
+    if (withNotes) page.insertAdjacentHTML('beforeend', '<div class="note"></div>');
+    if (withNotes) page.lastChild.textContent = p.notes || '';
+    out.append(page);
+  });
+  if (!navigator.webdriver) setTimeout(print, 300);
+}
 
 /* ── fit the canvas ──────────────────────────────────────────────────────── */
 function fitStage(){
@@ -194,8 +382,9 @@ function fitStage(){
 addEventListener('resize', fitStage);
 fitStage();
 
+show(+location.hash.slice(1) || 0, true);
 /* text-derived measurements are wrong until the real faces are in */
-document.fonts && document.fonts.ready.then(() => applyStep(step));
+document.fonts.ready.then(() => { layout(); MODE === 'print' ? buildPrint() : show(at, true); });
 </script>
 </body>
 </html>

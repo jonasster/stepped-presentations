@@ -1,0 +1,19 @@
+/* Crisp: fast, clean wipes, no bounce, no travel. Things are simply there.
+   Business, editorial and pitch decks where pace matters. */
+:root{
+  --motion:crisp;
+  --ease:cubic-bezier(.4,0,.2,1);
+  --ease-out:cubic-bezier(.2,0,0,1);
+  --t-reveal:.36s;
+  --t-fade:.22s;
+  --stagger:.06s;
+  --rise:0px;
+  --travel:0;
+  --from-scale:1;
+  --wipe-from:100%;
+  --title-anim:none;
+  --ambient-opacity:.14;
+  --ambient-scale:1.6;
+  --ambient-period:3.2s;
+  --camera-t:.8s;
+}

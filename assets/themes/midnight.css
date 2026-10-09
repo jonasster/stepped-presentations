@@ -1,0 +1,33 @@
+/* Midnight: a keynote stage. Near-black paper, warm off-white ink, one amber accent and a
+   soft palette that reads on a projector in a dark room.
+   Dark theme: palette values are LIGHT enough to pass 4.5:1 as text on --paper, so the
+   card fill mixes toward the paper, never toward white. */
+:root{
+  --theme:midnight;
+  --paper:#0f1115;
+  --ink:#f2efe9;
+  --ink-2:#b4b0a8;
+  --ink-3:#97938b;
+  --line:#262a33;
+  --muted:#3a3f4a;
+  --outside:#000000;
+  --accent:#ffb347;
+  --c1:#ffb347;
+  --c2:#7cc4ff;
+  --c3:#8fdc9d;
+  --c4:#f59ab5;
+  --c5:#c7a6ff;
+  --fill-mix:14%;
+  --display:"Geist","Segoe UI",system-ui,sans-serif;
+  --display-weight:600;
+  --display-case:none;
+  --display-tracking:-.025em;
+  --display-leading:1;
+  --sans:"Geist","Segoe UI",system-ui,sans-serif;
+  --mono:"Geist Mono",ui-monospace,Consolas,monospace;
+  --label-case:uppercase;
+  --label-tracking:.2em;
+  --radius:10px;
+  --marker-radius:50%;
+  --rule:1px;
+}

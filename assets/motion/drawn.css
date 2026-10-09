@@ -1,0 +1,19 @@
+/* Drawn: lines draw themselves on, titles type in, the camera moves slowly. Reads as the
+   picture being made while you talk. Diagrams, flows, technical stories. */
+:root{
+  --motion:drawn;
+  --ease:cubic-bezier(.65,0,.35,1);
+  --ease-out:cubic-bezier(.33,1,.68,1);
+  --t-reveal:.9s;
+  --t-fade:.5s;
+  --stagger:.22s;
+  --rise:0px;
+  --travel:0;
+  --from-scale:1;
+  --wipe-from:0%;
+  --title-anim:type;
+  --ambient-opacity:.12;
+  --ambient-scale:1.6;
+  --ambient-period:4.8s;
+  --camera-t:1.4s;
+}
