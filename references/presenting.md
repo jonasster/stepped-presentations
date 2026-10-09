@@ -99,8 +99,15 @@ chrome --headless=new --no-pdf-header-footer --virtual-time-budget=4000 --print-
 
 Things that do not print well, and what to do:
 
-- **A camera pan.** The clone keeps the track's current transform, which is right. A
-  half-finished pan is impossible here, because transitions are off.
+- **Anything that crosses the canvas edge.** Chrome counts an element past the edge when it
+  sizes the printed document, even though the stage clips it, and then shrinks *every* page
+  to fit, with the slides ending up at 70% of the paper. Print already leaves out elements
+  that are wholly off the canvas or not yet revealed. What remains must sit inside the canvas
+  at every position, which the verification checklist asks for anyway.
+- **A camera pan over a wide track.** A single container wider than the canvas, moved with
+  `transform`, trips the rule above on every page. Use a registered custom property instead
+  and position each thing at `calc(x + var(--pan))`, as `examples/journey` does (see the
+  camera section in `engine.md`).
 - **Iframes, video, canvas.** Iframes and video are cloned empty, and a canvas loses its pixels
   when cloned. If a deck has one, give it a static fallback (an image) that shows under `.still`.
 - **Elements outside the stage** (a detail panel attached to `body`) are not cloned. Keep

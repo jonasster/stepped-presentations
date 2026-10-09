@@ -169,9 +169,13 @@ img{display:block;max-width:100%}
 /* ---- ?print: one page per position, then the browser's Save as PDF ---- */
 #print{display:none}
 .print body{overflow:visible;background:#fff}
-.print #viewport,.print #chrome,.print #progress{display:none}
+.print #chrome,.print #progress{display:none}
+/* not display:none: the live stage is what layout() measures before it is cloned */
+.print #viewport{position:absolute;width:0;height:0;overflow:hidden;visibility:hidden}
 .print #print{display:block}
-.page{position:relative;width:1920px;height:1080px;overflow:hidden;break-after:page}
+/* contain:paint as well as overflow:hidden: a camera track wider than the canvas must not
+   widen the printed document, or the browser shrinks every page to fit it */
+.page{position:relative;width:1920px;height:1080px;overflow:hidden;contain:paint;break-after:page}
 .page.notes{height:1440px}
 .page #stage{position:relative;left:0;top:0;transform:none!important}
 .page .note{position:absolute;left:0;right:0;top:1080px;bottom:0;padding:44px 120px;
@@ -356,6 +360,18 @@ if (MODE === 'presenter'){
 }
 
 /* ── print: freeze each position, clone the stage onto its own page ──────── */
+/* Chrome counts an element past the canvas edge when it sizes the printed document, even
+   though the stage clips it, and then shrinks every page to fit. So each copy leaves out
+   what cannot be seen anyway: anything wholly off the canvas, and anything not yet revealed.
+   What is left must stay inside the canvas, which verification.md already asks for. */
+function dropOffCanvas(live, copy){
+  const box = live.getBoundingClientRect(), b = copy.querySelectorAll('*');
+  live.querySelectorAll('*').forEach((el, i) => {
+    const r = el.getBoundingClientRect();
+    const off = r.right <= box.left || r.left >= box.right || r.bottom <= box.top || r.top >= box.bottom;
+    if ((r.width && off) || getComputedStyle(el).opacity === '0') b[i].style.display = 'none';
+  });
+}
 function buildPrint(){
   const withNotes = Q.get('print') === 'notes';
   const css = document.createElement('style');
@@ -366,11 +382,14 @@ function buildPrint(){
     show(i, true);
     const page = document.createElement('div');
     page.className = 'page' + (withNotes ? ' notes' : '');
-    page.append(stage.cloneNode(true));
+    const copy = stage.cloneNode(true);
+    dropOffCanvas(stage, copy);
+    page.append(copy);
     if (withNotes) page.insertAdjacentHTML('beforeend', '<div class="note"></div>');
     if (withNotes) page.lastChild.textContent = p.notes || '';
     out.append(page);
   });
+  document.getElementById('viewport').style.display = 'none';   // measured and cloned; now out of the way
   if (!navigator.webdriver) setTimeout(print, 300);
 }
 

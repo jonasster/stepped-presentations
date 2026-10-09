@@ -165,6 +165,24 @@ function follow(p){
 }
 ```
 
+**If the deck will be printed, pan a property, not a track.** A container wider than the canvas
+breaks print-to-PDF (see `presenting.md`). The print-safe camera is one registered custom
+property that everything on the road reads, and that transitions like any other value:
+
+```css
+@property --pan{ syntax:"<length>"; inherits:true; initial-value:0px; }
+#scene{ --pan:0px; transition: --pan var(--camera-t) var(--ease-out); }
+#world{ transform: translateX(var(--pan)); }        /* an <svg> group, canvas-sized svg */
+```
+```js
+el.style.left = `calc(${x}px + var(--pan))`;          // each stop and card
+scene.style.setProperty('--pan', panFor(step) + 'px');
+```
+
+Derive the pan from the step too (replay the follow rule from the first step), so `←`, a deep
+link and print all frame the scene exactly as walking forward did. `examples/journey` is the
+worked version.
+
 A "show everything" view is a zoom-out (`zoom = 1860 / spanW`), not a pan. Set
 `transform-origin` on the track to the scene's own axis so scaling collapses toward the spine
 rather than the corner.
